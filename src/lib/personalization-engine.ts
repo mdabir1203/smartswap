@@ -692,3 +692,50 @@ export function personalize(searchParams: URLSearchParams, referrer?: string): {
 export const ALL_INTENTS: IntentType[] = [
   "gaming", "productivity", "budget", "creative", "student", "developer", "default"
 ];
+
+// ---------------------
+// EXPORTABLE DECISION OBJECT (§2.5 Spec Format)
+// ---------------------
+
+export interface ExportableDecision {
+  intent: string;
+  template: string;
+  hero_image: string;
+  cta: string;
+  cta_link: string;
+  funnel_stage: string;
+  section_order: string[];
+  confidence: string;
+  reason: string;
+  signals: Array<{ source: string; value: string; intent: string; weight: number }>;
+  edge_cases: string[];
+  injection_log: string[];
+  timestamp: string;
+}
+
+/**
+ * Converts the internal IntentResult into the §2.5 spec-compliant
+ * exportable JSON format for external consumption.
+ */
+export function exportDecision(result: IntentResult): ExportableDecision {
+  return {
+    intent: result.intent.toUpperCase(),
+    template: result.templateId,
+    hero_image: `hero-${result.heroImageKey}.jpg`,
+    cta: result.ctaDecision.text,
+    cta_link: result.ctaDecision.link,
+    funnel_stage: result.funnelStage.toUpperCase(),
+    section_order: result.sectionOrder,
+    confidence: result.confidence,
+    reason: result.reasoning,
+    signals: result.signals.map(s => ({
+      source: s.source,
+      value: s.value,
+      intent: s.intentMatch,
+      weight: Number(s.weight.toFixed(2)),
+    })),
+    edge_cases: result.edgeCases,
+    injection_log: result.injectionLog,
+    timestamp: new Date().toISOString(),
+  };
+}
