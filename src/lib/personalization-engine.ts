@@ -46,12 +46,17 @@ export interface IntentResult {
   scoreBreakdown: Record<string, number>;
 }
 
+export type FunnelStage = "buy" | "compare" | "explore";
+
 export interface ContentVariant {
   intent: IntentType;
   headline: string;
   subhead: string;
   ctaText: string;
+  ctaLink: string;
   ctaSecondary: string;
+  ctaSecondaryLink: string;
+  funnelStage: FunnelStage;
   heroImageKey: string;
   accentColor: string;
   badgeText: string;
@@ -67,7 +72,10 @@ export const CONTENT_VARIANTS: Record<IntentType, ContentVariant> = {
     headline: "Dominate the Leaderboard",
     subhead: "144Hz refresh rate. 1ms response time. Zero excuses. Our gaming monitors are built for players who refuse to lose.",
     ctaText: "Shop Gaming Monitors",
+    ctaLink: "/collections/gaming",
     ctaSecondary: "Compare Specs",
+    ctaSecondaryLink: "/compare?category=gaming",
+    funnelStage: "buy",
     heroImageKey: "gaming",
     accentColor: "--intent-gaming",
     badgeText: "⚡ Gaming Collection",
@@ -77,7 +85,10 @@ export const CONTENT_VARIANTS: Record<IntentType, ContentVariant> = {
     headline: "Maximize Your Efficiency",
     subhead: "4K clarity. Ergonomic stands. Blue light filters. The workspace upgrade your eyes have been begging for.",
     ctaText: "Explore Office Displays",
+    ctaLink: "/collections/office",
     ctaSecondary: "See Ergonomic Options",
+    ctaSecondaryLink: "/compare?category=ergonomic",
+    funnelStage: "compare",
     heroImageKey: "productivity",
     accentColor: "--intent-productivity",
     badgeText: "📊 Pro Workspace",
@@ -87,7 +98,10 @@ export const CONTENT_VARIANTS: Record<IntentType, ContentVariant> = {
     headline: "Best Value Monitors",
     subhead: "Premium quality doesn't require a premium price. Discover monitors rated 4.5★ and above — all under $300.",
     ctaText: "See Today's Deals",
+    ctaLink: "/collections/deals",
     ctaSecondary: "Price Match Guarantee",
+    ctaSecondaryLink: "/policies/price-match",
+    funnelStage: "buy",
     heroImageKey: "budget",
     accentColor: "--intent-budget",
     badgeText: "🏷️ Best Sellers Under $300",
@@ -97,7 +111,10 @@ export const CONTENT_VARIANTS: Record<IntentType, ContentVariant> = {
     headline: "Color-Accurate Brilliance",
     subhead: "100% DCI-P3 gamut. Factory-calibrated ΔE<2. HDR1000. For designers and photographers who demand pixel-perfect color.",
     ctaText: "Shop Creator Monitors",
+    ctaLink: "/collections/creator",
     ctaSecondary: "See Color Profiles",
+    ctaSecondaryLink: "/guides/color-accuracy",
+    funnelStage: "explore",
     heroImageKey: "creative",
     accentColor: "--intent-creative",
     badgeText: "🎨 Creator Pro Series",
@@ -107,7 +124,10 @@ export const CONTENT_VARIANTS: Record<IntentType, ContentVariant> = {
     headline: "Smart Screens for Smart Minds",
     subhead: "Eye-care technology. Compact designs. Student-friendly prices. The perfect study companion that won't break your budget.",
     ctaText: "Student Deals",
+    ctaLink: "/collections/student",
     ctaSecondary: "Verify Student Discount",
+    ctaSecondaryLink: "/student-verification",
+    funnelStage: "explore",
     heroImageKey: "student",
     accentColor: "--intent-student",
     badgeText: "🎓 Student Special",
@@ -117,7 +137,10 @@ export const CONTENT_VARIANTS: Record<IntentType, ContentVariant> = {
     headline: "Code in Ultra Definition",
     subhead: "Multi-monitor daisy-chain. 32:9 ultrawide options. Pixel-dense text rendering. Built for developers who live in the terminal.",
     ctaText: "Dev Setup Bundles",
+    ctaLink: "/collections/developer",
     ctaSecondary: "Multi-Monitor Guide",
+    ctaSecondaryLink: "/guides/multi-monitor-setup",
+    funnelStage: "compare",
     heroImageKey: "developer",
     accentColor: "--intent-developer",
     badgeText: "⌨️ Dev Workstation",
@@ -127,7 +150,10 @@ export const CONTENT_VARIANTS: Record<IntentType, ContentVariant> = {
     headline: "Crystal Clear Displays for Everyone",
     subhead: "From gaming to productivity, find the perfect monitor that matches your world. Trusted by 50,000+ customers.",
     ctaText: "Browse All Monitors",
+    ctaLink: "/collections/all",
     ctaSecondary: "Take the Quiz",
+    ctaSecondaryLink: "/quiz",
+    funnelStage: "explore",
     heroImageKey: "default",
     accentColor: "--primary",
     badgeText: "✨ New Arrivals",
