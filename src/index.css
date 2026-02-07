@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -44,17 +44,24 @@
     --badge-bg: 38 80% 55% / 0.15;
     --badge-text: 38 80% 65%;
 
-    /* === INTENT-SPECIFIC ACCENT COLORS === */
+    /* === INTENT-SPECIFIC ACCENT COLORS (7 intents) === */
     --intent-gaming: 174 90% 50%;
     --intent-gaming-glow: 174 90% 50% / 0.3;
     --intent-productivity: 210 70% 55%;
     --intent-productivity-glow: 210 70% 55% / 0.3;
     --intent-budget: 155 65% 45%;
     --intent-budget-glow: 155 65% 45% / 0.3;
+    --intent-creative: 280 70% 60%;
+    --intent-creative-glow: 280 70% 60% / 0.3;
+    --intent-student: 25 85% 55%;
+    --intent-student-glow: 25 85% 55% / 0.3;
+    --intent-developer: 142 70% 45%;
+    --intent-developer-glow: 142 70% 45% / 0.3;
 
     /* === TYPOGRAPHY === */
     --font-display: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
 
     /* === SIDEBAR (inherited) === */
     --sidebar-background: 30 12% 8%;
@@ -83,6 +90,10 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
   }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
 }
 
 /* === HERO TRANSITIONS === */
@@ -108,5 +119,12 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .code-block {
+    background: hsl(30 12% 8%);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
   }
 }

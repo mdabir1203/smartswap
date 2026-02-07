@@ -1,19 +1,15 @@
 /**
  * ============================================================
- * PERSONALIZATION ENGINE — "The Brain"
+ * PERSONALIZATION ENGINE v2 — "The Brain"
  * ============================================================
  * 
- * Architecture Decision: Pure functions with zero side-effects.
- * This module is designed to be framework-agnostic — it could
- * be extracted as a standalone CDN script with minimal changes.
- * 
- * The engine follows a 3-stage pipeline:
- *   1. SIGNAL COLLECTION  → Parse all available user signals
- *   2. INTENT RESOLUTION  → Map signals to a known intent
- *   3. VARIANT SELECTION   → Return the correct content variant
- * 
- * Safety Philosophy: If confidence is low, ALWAYS fallback to
- * the default variant. A generic hero is better than a wrong one.
+ * v2 Additions:
+ *   - 3 new intents: Creative, Student, Developer
+ *   - Compound signal handling (e.g., "gaming-budget")
+ *   - Conflict resolution for competing intents
+ *   - Edge case handling: malformed params, partial matches,
+ *     URL-encoded values, empty strings, unknown intents
+ *   - Signal decay: duplicate source types get diminishing weight
  * ============================================================
  */
 
@@ -21,22 +17,33 @@
 // TYPE DEFINITIONS
 // ---------------------
 
-export type IntentType = "gaming" | "productivity" | "budget" | "default";
+export type IntentType = 
+  | "gaming" 
+  | "productivity" 
+  | "budget" 
+  | "creative" 
+  | "student" 
+  | "developer" 
+  | "default";
 
 export type ConfidenceLevel = "high" | "medium" | "low";
 
 export interface UserSignal {
-  source: string;       // Where we found this signal (e.g., "utm_campaign", "query", "referrer")
-  value: string;        // The raw value we detected
-  intentMatch: IntentType; // What intent this signal maps to
-  weight: number;       // How confident we are in this signal (0-1)
+  source: string;
+  value: string;
+  intentMatch: IntentType;
+  weight: number;
 }
 
 export interface IntentResult {
   intent: IntentType;
   confidence: ConfidenceLevel;
   signals: UserSignal[];
-  reasoning: string;    // Human-readable explanation for the debug overlay
+  reasoning: string;
+  /** Edge cases detected during processing */
+  edgeCases: string[];
+  /** All score breakdowns for transparency */
+  scoreBreakdown: Record<string, number>;
 }
 
 export interface ContentVariant {
@@ -45,17 +52,14 @@ export interface ContentVariant {
   subhead: string;
   ctaText: string;
   ctaSecondary: string;
-  heroImageKey: string;  // Maps to the image asset
-  accentColor: string;   // CSS custom property name
-  badgeText: string;     // Small badge above headline
+  heroImageKey: string;
+  accentColor: string;
+  badgeText: string;
 }
 
 // ---------------------
-// DATA STORE
+// DATA STORE (expanded)
 // ---------------------
-// Why a constant map? For an MVP, this is the simplest structure 
-// that allows instant O(1) lookups. In production, this would 
-// come from a CMS or API endpoint.
 
 export const CONTENT_VARIANTS: Record<IntentType, ContentVariant> = {
   gaming: {
@@ -88,6 +92,36 @@ export const CONTENT_VARIANTS: Record<IntentType, ContentVariant> = {
     accentColor: "--intent-budget",
     badgeText: "🏷️ Best Sellers Under $300",
   },
+  creative: {
+    intent: "creative",
+    headline: "Color-Accurate Brilliance",
+    subhead: "100% DCI-P3 gamut. Factory-calibrated ΔE<2. HDR1000. For designers and photographers who demand pixel-perfect color.",
+    ctaText: "Shop Creator Monitors",
+    ctaSecondary: "See Color Profiles",
+    heroImageKey: "creative",
+    accentColor: "--intent-creative",
+    badgeText: "🎨 Creator Pro Series",
+  },
+  student: {
+    intent: "student",
+    headline: "Smart Screens for Smart Minds",
+    subhead: "Eye-care technology. Compact designs. Student-friendly prices. The perfect study companion that won't break your budget.",
+    ctaText: "Student Deals",
+    ctaSecondary: "Verify Student Discount",
+    heroImageKey: "student",
+    accentColor: "--intent-student",
+    badgeText: "🎓 Student Special",
+  },
+  developer: {
+    intent: "developer",
+    headline: "Code in Ultra Definition",
+    subhead: "Multi-monitor daisy-chain. 32:9 ultrawide options. Pixel-dense text rendering. Built for developers who live in the terminal.",
+    ctaText: "Dev Setup Bundles",
+    ctaSecondary: "Multi-Monitor Guide",
+    heroImageKey: "developer",
+    accentColor: "--intent-developer",
+    badgeText: "⌨️ Dev Workstation",
+  },
   default: {
     intent: "default",
     headline: "Crystal Clear Displays for Everyone",
@@ -101,244 +135,450 @@ export const CONTENT_VARIANTS: Record<IntentType, ContentVariant> = {
 };
 
 // ---------------------
-// SIGNAL DETECTION
+// KEYWORD MAPS (expanded with edge cases)
 // ---------------------
-// Why keyword arrays? They allow fuzzy matching against URL params
-// without requiring exact string matches. A user searching for 
-// "144hz gaming monitor" should trigger the gaming intent.
 
 const INTENT_KEYWORDS: Record<Exclude<IntentType, "default">, string[]> = {
   gaming: [
-    "gaming", "game", "gamer", "esports", "fps", "144hz", "240hz",
-    "1ms", "curved", "rgb", "competitive", "twitch", "stream",
+    "gaming", "game", "gamer", "esports", "fps", "144hz", "240hz", "360hz",
+    "1ms", "curved", "rgb", "competitive", "twitch", "stream", "streamer",
+    "fortnite", "valorant", "csgo", "moba", "refresh rate", "gsync", "freesync",
+    "nvidia", "amd", "rtx", "gpu",
   ],
   productivity: [
-    "office", "work", "productivity", "4k", "ergonomic", "usb-c",
-    "daisy-chain", "color-accurate", "design", "linkedin", "professional",
+    "office", "work", "productivity", "4k", "ergonomic", "usb-c", "thunderbolt",
+    "daisy-chain", "color-accurate", "linkedin", "professional", "business",
+    "enterprise", "corporate", "workplace", "multitask", "split screen",
+    "pivot", "portrait mode", "kvm",
   ],
   budget: [
-    "cheap", "budget", "affordable", "deal", "sale", "discount",
-    "under-300", "value", "best-price", "clearance",
+    "cheap", "budget", "affordable", "deal", "sale", "discount", "clearance",
+    "under-300", "under-200", "value", "best-price", "bargain", "savings",
+    "coupon", "promo", "refurbished", "renewed", "outlet",
+  ],
+  creative: [
+    "creative", "design", "designer", "photography", "photo editing", "video editing",
+    "color accurate", "dci-p3", "adobe rgb", "srgb", "pantone", "calibrate",
+    "calibration", "hdr", "hdr1000", "10-bit", "10bit", "illustration",
+    "retouching", "cinema", "filmmaker", "animation", "3d modeling",
+    "behance", "dribbble", "figma",
+  ],
+  student: [
+    "student", "college", "university", "dorm", "study", "homework", "campus",
+    "school", "education", "learning", "lecture", "textbook", "scholarship",
+    "backtoschool", "back-to-school", "freshman", "grad", "academic",
+  ],
+  developer: [
+    "developer", "dev", "coding", "code", "programmer", "programming",
+    "terminal", "ide", "vscode", "vim", "neovim", "emacs", "github",
+    "stackoverflow", "devops", "fullstack", "frontend", "backend",
+    "multi monitor", "dual monitor", "triple monitor", "ultrawide dev",
+    "32:9", "pixel density", "retina", "hidpi", "ssh",
   ],
 };
 
 /**
- * Stage 1: SIGNAL COLLECTION
+ * EDGE CASE: Priority matrix for resolving compound/conflicting intents.
+ * When two intents are close in score, this defines which one wins.
  * 
- * Scans all available data sources (URL params, referrer) and 
- * produces an array of weighted signals. Each signal represents 
- * one piece of evidence about user intent.
+ * Why? "cheap gaming monitor" contains both "budget" and "gaming" signals.
+ * The first keyword detected in the user's query gets priority boost.
  */
-export function collectSignals(searchParams: URLSearchParams, referrer: string = ""): UserSignal[] {
-  const signals: UserSignal[] = [];
+const INTENT_PRIORITY: IntentType[] = [
+  "gaming", "creative", "developer", "productivity", "student", "budget", "default"
+];
 
-  // --- UTM Campaign (Highest confidence — the marketer told us) ---
+// ---------------------
+// SIGNAL DETECTION (v2)
+// ---------------------
+
+export function collectSignals(searchParams: URLSearchParams, referrer: string = ""): { signals: UserSignal[]; edgeCases: string[] } {
+  const signals: UserSignal[] = [];
+  const edgeCases: string[] = [];
+
+  // EDGE CASE: Empty search params
+  if ([...searchParams.entries()].length === 0 && !referrer) {
+    edgeCases.push("No URL parameters or referrer detected — pure organic visit");
+    return { signals, edgeCases };
+  }
+
+  // --- UTM Campaign (Highest confidence) ---
   const utmCampaign = searchParams.get("utm_campaign");
   if (utmCampaign) {
-    const matched = matchKeywordToIntent(utmCampaign);
-    if (matched) {
+    const decoded = safeDecodeURI(utmCampaign);
+    const matches = matchAllKeywords(decoded);
+    
+    if (matches.length === 0) {
+      edgeCases.push(`Unknown utm_campaign value: "${decoded}" — no matching intent`);
+    } else if (matches.length > 1) {
+      edgeCases.push(`Compound signal in utm_campaign: "${decoded}" matches [${matches.map(m => m.intent).join(", ")}]`);
+    }
+    
+    matches.forEach((match, i) => {
       signals.push({
         source: "utm_campaign",
-        value: utmCampaign,
-        intentMatch: matched,
-        weight: 0.95, // Very high — explicit marketing signal
+        value: decoded,
+        intentMatch: match.intent,
+        weight: i === 0 ? 0.95 : 0.3, // First match gets full weight, subsequent get diminished
       });
-    }
+    });
   }
 
-  // --- UTM Source (Medium confidence) ---
+  // --- UTM Source ---
   const utmSource = searchParams.get("utm_source");
   if (utmSource) {
-    const matched = matchKeywordToIntent(utmSource);
-    if (matched) {
+    const decoded = safeDecodeURI(utmSource);
+    const matches = matchAllKeywords(decoded);
+    matches.forEach((match, i) => {
       signals.push({
         source: "utm_source",
-        value: utmSource,
-        intentMatch: matched,
-        weight: 0.7,
+        value: decoded,
+        intentMatch: match.intent,
+        weight: i === 0 ? 0.7 : 0.2,
       });
-    }
+    });
   }
 
-  // --- Direct intent param (Highest confidence — explicit) ---
+  // --- UTM Medium (new in v2) ---
+  const utmMedium = searchParams.get("utm_medium");
+  if (utmMedium) {
+    const decoded = safeDecodeURI(utmMedium);
+    const matches = matchAllKeywords(decoded);
+    matches.forEach((match) => {
+      signals.push({
+        source: "utm_medium",
+        value: decoded,
+        intentMatch: match.intent,
+        weight: 0.5,
+      });
+    });
+  }
+
+  // --- Direct intent param ---
   const intentParam = searchParams.get("intent");
   if (intentParam) {
-    const matched = matchKeywordToIntent(intentParam);
-    if (matched) {
+    const decoded = safeDecodeURI(intentParam);
+    // EDGE CASE: Direct intent that doesn't match any known type
+    const validIntents: IntentType[] = ["gaming", "productivity", "budget", "creative", "student", "developer"];
+    if (validIntents.includes(decoded as IntentType)) {
       signals.push({
         source: "intent",
-        value: intentParam,
-        intentMatch: matched,
+        value: decoded,
+        intentMatch: decoded as IntentType,
         weight: 1.0,
       });
+    } else {
+      // Try fuzzy match
+      const matches = matchAllKeywords(decoded);
+      if (matches.length > 0) {
+        signals.push({
+          source: "intent",
+          value: decoded,
+          intentMatch: matches[0].intent,
+          weight: 0.8,
+        });
+        edgeCases.push(`Fuzzy-matched intent param "${decoded}" → ${matches[0].intent}`);
+      } else {
+        edgeCases.push(`Invalid intent param: "${decoded}" — doesn't match any known intent`);
+      }
     }
   }
 
-  // --- Search query (Medium-high confidence — behavioral signal) ---
+  // --- Search query ---
   const query = searchParams.get("q") || searchParams.get("query") || searchParams.get("search");
   if (query) {
-    const matched = matchKeywordToIntent(query);
-    if (matched) {
-      signals.push({
-        source: "search_query",
-        value: query,
-        intentMatch: matched,
-        weight: 0.8,
+    const decoded = safeDecodeURI(query);
+    
+    // EDGE CASE: Very short queries (1-2 chars) are unreliable
+    if (decoded.length <= 2) {
+      edgeCases.push(`Query too short: "${decoded}" — skipping (unreliable signal)`);
+    } else {
+      const matches = matchAllKeywords(decoded);
+      if (matches.length > 1) {
+        edgeCases.push(`Multi-intent query: "${decoded}" matches [${matches.map(m => m.intent).join(", ")}]`);
+      }
+      matches.forEach((match, i) => {
+        signals.push({
+          source: "search_query",
+          value: decoded,
+          intentMatch: match.intent,
+          weight: i === 0 ? 0.8 : 0.3,
+        });
       });
     }
   }
 
-  // --- Referrer analysis (Medium confidence — contextual) ---
+  // --- Referrer analysis ---
   const refParam = searchParams.get("ref") || referrer;
   if (refParam) {
-    const matched = matchKeywordToIntent(refParam);
-    if (matched) {
-      signals.push({
-        source: "referrer",
-        value: refParam,
-        intentMatch: matched,
-        weight: 0.6,
+    const decoded = safeDecodeURI(refParam);
+    const matches = matchAllKeywords(decoded);
+    
+    // EDGE CASE: Well-known referrers with implicit intent
+    const implicitReferrers: Record<string, IntentType> = {
+      "linkedin": "productivity",
+      "behance": "creative",
+      "dribbble": "creative",
+      "github": "developer",
+      "stackoverflow": "developer",
+      "twitch": "gaming",
+      "reddit/r/gaming": "gaming",
+      "reddit/r/buildapc": "gaming",
+      "reddit/r/frugal": "budget",
+      "slickdeals": "budget",
+      "studentbeans": "student",
+      "unidays": "student",
+    };
+    
+    let foundImplicit = false;
+    for (const [domain, intent] of Object.entries(implicitReferrers)) {
+      if (decoded.toLowerCase().includes(domain)) {
+        signals.push({
+          source: "referrer_domain",
+          value: domain,
+          intentMatch: intent,
+          weight: 0.75,
+        });
+        foundImplicit = true;
+      }
+    }
+    
+    if (!foundImplicit) {
+      matches.forEach((match) => {
+        signals.push({
+          source: "referrer",
+          value: decoded,
+          intentMatch: match.intent,
+          weight: 0.6,
+        });
       });
     }
   }
 
-  // --- Catch-all: scan ALL params for keyword matches ---
+  // --- Category param (new: common in Shopify stores) ---
+  const category = searchParams.get("category") || searchParams.get("cat") || searchParams.get("collection");
+  if (category) {
+    const decoded = safeDecodeURI(category);
+    const matches = matchAllKeywords(decoded);
+    matches.forEach((match) => {
+      signals.push({
+        source: "category",
+        value: decoded,
+        intentMatch: match.intent,
+        weight: 0.85,
+      });
+    });
+  }
+
+  // --- Tag/label params (new: common in CMS systems) ---
+  const tag = searchParams.get("tag") || searchParams.get("label") || searchParams.get("segment");
+  if (tag) {
+    const decoded = safeDecodeURI(tag);
+    const matches = matchAllKeywords(decoded);
+    matches.forEach((match) => {
+      signals.push({
+        source: "tag",
+        value: decoded,
+        intentMatch: match.intent,
+        weight: 0.7,
+      });
+    });
+  }
+
+  // --- Catch-all: scan remaining params ---
+  const knownParams = new Set([
+    "utm_campaign", "utm_source", "utm_medium", "intent", "q", "query", 
+    "search", "ref", "category", "cat", "collection", "tag", "label", "segment"
+  ]);
+  
   searchParams.forEach((value, key) => {
-    if (!["utm_campaign", "utm_source", "intent", "q", "query", "search", "ref"].includes(key)) {
-      const matched = matchKeywordToIntent(`${key} ${value}`);
-      if (matched) {
+    if (!knownParams.has(key)) {
+      const decoded = safeDecodeURI(`${key} ${value}`);
+      const matches = matchAllKeywords(decoded);
+      if (matches.length > 0) {
         signals.push({
           source: `param:${key}`,
           value: value || key,
-          intentMatch: matched,
+          intentMatch: matches[0].intent,
           weight: 0.4,
         });
       }
     }
   });
 
-  return signals;
+  // EDGE CASE: Detect duplicate source types and apply decay
+  const sourceCounts: Record<string, number> = {};
+  signals.forEach((signal) => {
+    const baseSource = signal.source.split(":")[0];
+    sourceCounts[baseSource] = (sourceCounts[baseSource] || 0) + 1;
+    if (sourceCounts[baseSource] > 1) {
+      signal.weight *= 0.7; // Decay for duplicate source types
+      edgeCases.push(`Signal decay applied: duplicate ${baseSource} source`);
+    }
+  });
+
+  return { signals, edgeCases };
 }
 
 /**
- * Stage 2: INTENT RESOLUTION
- * 
- * Aggregates all signals and determines the dominant intent.
- * Uses a weighted scoring system — not just "first match wins."
- * This prevents a low-confidence signal from overriding a 
- * high-confidence one.
+ * Stage 2: INTENT RESOLUTION (v2 with edge case handling)
  */
-export function resolveIntent(signals: UserSignal[]): IntentResult {
-  // Safety: No signals? Default immediately.
+export function resolveIntent(signals: UserSignal[], edgeCases: string[]): IntentResult {
+  const allIntents: IntentType[] = ["gaming", "productivity", "budget", "creative", "student", "developer"];
+  
   if (signals.length === 0) {
     return {
       intent: "default",
       confidence: "low",
       signals: [],
       reasoning: "No personalization signals detected. Showing default experience.",
+      edgeCases,
+      scoreBreakdown: Object.fromEntries(allIntents.map(i => [i, 0])),
     };
   }
 
   // Aggregate scores per intent
-  const scores: Record<IntentType, number> = {
-    gaming: 0,
-    productivity: 0,
-    budget: 0,
-    default: 0,
-  };
-
+  const scores: Record<string, number> = {};
+  allIntents.forEach(i => { scores[i] = 0; });
+  
   signals.forEach((signal) => {
-    scores[signal.intentMatch] += signal.weight;
+    scores[signal.intentMatch] = (scores[signal.intentMatch] || 0) + signal.weight;
   });
 
-  // Find the winning intent
-  const sortedIntents = (Object.entries(scores) as [IntentType, number][])
-    .filter(([intent]) => intent !== "default")
-    .sort(([, a], [, b]) => b - a);
+  // Sort by score, then by priority order for tiebreaking
+  const sortedIntents = allIntents
+    .map(intent => ({ intent, score: scores[intent] || 0 }))
+    .sort((a, b) => {
+      if (Math.abs(b.score - a.score) < 0.05) {
+        // EDGE CASE: Tiebreaker — use priority matrix
+        return INTENT_PRIORITY.indexOf(a.intent) - INTENT_PRIORITY.indexOf(b.intent);
+      }
+      return b.score - a.score;
+    });
 
-  const [topIntent, topScore] = sortedIntents[0] || ["default", 0];
-  const [, secondScore] = sortedIntents[1] || ["default", 0];
+  const top = sortedIntents[0];
+  const second = sortedIntents[1];
 
-  // Confidence calculation:
-  // High: Strong signal (>= 0.8) and clear winner
-  // Medium: Decent signal but ambiguous 
-  // Low: Weak signals — fallback to default
+  // EDGE CASE: Check if top two are very close (conflict)
+  const scoreDiff = top.score - second.score;
+  if (scoreDiff > 0 && scoreDiff < 0.15 && top.score >= 0.4) {
+    edgeCases.push(
+      `Close contest: ${top.intent} (${top.score.toFixed(2)}) vs ${second.intent} (${second.score.toFixed(2)}) — resolved by priority matrix`
+    );
+  }
+
+  // Confidence calculation
   let confidence: ConfidenceLevel;
   let finalIntent: IntentType;
 
-  if (topScore >= 0.8) {
+  if (top.score >= 0.8) {
     confidence = "high";
-    finalIntent = topIntent;
-  } else if (topScore >= 0.4 && topScore - secondScore >= 0.2) {
+    finalIntent = top.intent;
+  } else if (top.score >= 0.4 && scoreDiff >= 0.1) {
     confidence = "medium";
-    finalIntent = topIntent;
+    finalIntent = top.intent;
+  } else if (top.score >= 0.3) {
+    confidence = "low";
+    finalIntent = top.intent;
+    edgeCases.push("Low confidence — showing matched intent but results may be imprecise");
   } else {
     confidence = "low";
-    finalIntent = "default"; // SAFETY: Unclear intent → show default
+    finalIntent = "default";
+    edgeCases.push("All scores below threshold — safe fallback to default");
   }
 
-  // Build human-readable reasoning
+  // Build reasoning
   const topSignal = signals.find((s) => s.intentMatch === finalIntent);
   const reasoning = finalIntent === "default"
     ? "Intent signals too weak or ambiguous. Defaulting to generic experience."
-    : `Detected '${topSignal?.value}' in ${topSignal?.source}. Confidence: ${(topScore * 100).toFixed(0)}%.`;
+    : `Detected '${topSignal?.value}' in ${topSignal?.source}. Score: ${top.score.toFixed(2)} (${confidence} confidence).${
+        scoreDiff < 0.2 ? ` Close runner-up: ${second.intent} at ${second.score.toFixed(2)}.` : ""
+      }`;
 
   return {
     intent: finalIntent,
     confidence,
     signals,
     reasoning,
+    edgeCases,
+    scoreBreakdown: scores,
   };
 }
 
 /**
  * Stage 3: VARIANT SELECTION
- * 
- * Simple lookup — the heavy lifting was done in Stages 1 & 2.
- * Always returns a valid variant (default as fallback).
  */
 export function getVariant(intent: IntentType): ContentVariant {
   return CONTENT_VARIANTS[intent] || CONTENT_VARIANTS.default;
 }
 
 // ---------------------
-// UTILITY FUNCTIONS
+// UTILITY FUNCTIONS (v2)
 // ---------------------
 
 /**
- * Fuzzy keyword matching against all intent keyword sets.
- * Returns the first matching intent, or null if no match.
- * 
- * Why lowercase + includes? It handles compound strings like 
- * "gaming-monitors-sale" matching the "gaming" keyword.
+ * Returns ALL matching intents for a given input string,
+ * sorted by keyword position (earlier = higher priority).
+ * This handles compound signals like "gaming budget monitor".
  */
-function matchKeywordToIntent(input: string): IntentType | null {
+function matchAllKeywords(input: string): { intent: IntentType; position: number }[] {
   const normalized = input.toLowerCase().replace(/[_-]/g, " ");
+  const matches: { intent: IntentType; position: number }[] = [];
+  const seenIntents = new Set<IntentType>();
 
   for (const [intent, keywords] of Object.entries(INTENT_KEYWORDS)) {
     for (const keyword of keywords) {
-      if (normalized.includes(keyword)) {
-        return intent as IntentType;
+      const pos = normalized.indexOf(keyword);
+      if (pos !== -1 && !seenIntents.has(intent as IntentType)) {
+        // EDGE CASE: Avoid partial word matches (e.g., "game" in "endgame")
+        // Only check word boundaries for short keywords (< 4 chars)
+        if (keyword.length < 4) {
+          const before = pos > 0 ? normalized[pos - 1] : " ";
+          const after = pos + keyword.length < normalized.length ? normalized[pos + keyword.length] : " ";
+          if (before.match(/[a-z0-9]/) || after.match(/[a-z0-9]/)) {
+            continue; // Skip partial matches for short keywords
+          }
+        }
+        
+        matches.push({ intent: intent as IntentType, position: pos });
+        seenIntents.add(intent as IntentType);
+        break; // One match per intent is enough
       }
     }
   }
 
-  return null;
+  return matches.sort((a, b) => a.position - b.position);
+}
+
+/**
+ * Safe URI decoding that handles malformed percent-encoding.
+ * EDGE CASE: Users sometimes manually type URLs with broken encoding.
+ */
+function safeDecodeURI(input: string): string {
+  try {
+    return decodeURIComponent(input);
+  } catch {
+    return input; // Return as-is if decoding fails
+  }
 }
 
 /**
  * Full pipeline: Collect → Resolve → Select
- * 
- * This is the main entry point. In a real CDN script, this would
- * be the function that runs on DOMContentLoaded.
  */
 export function personalize(searchParams: URLSearchParams, referrer?: string): {
   variant: ContentVariant;
   result: IntentResult;
 } {
-  const signals = collectSignals(searchParams, referrer);
-  const result = resolveIntent(signals);
+  const { signals, edgeCases } = collectSignals(searchParams, referrer);
+  const result = resolveIntent(signals, edgeCases);
   const variant = getVariant(result.intent);
 
   return { variant, result };
 }
+
+/**
+ * Export all intent types for use in UI components
+ */
+export const ALL_INTENTS: IntentType[] = [
+  "gaming", "productivity", "budget", "creative", "student", "developer", "default"
+];

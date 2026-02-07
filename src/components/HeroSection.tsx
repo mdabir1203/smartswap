@@ -6,24 +6,21 @@ import type { ContentVariant, IntentType } from "@/lib/personalization-engine";
 import heroGaming from "@/assets/hero-gaming.jpg";
 import heroProductivity from "@/assets/hero-productivity.jpg";
 import heroBudget from "@/assets/hero-budget.jpg";
+import heroCreative from "@/assets/hero-creative.jpg";
+import heroStudent from "@/assets/hero-student.jpg";
+import heroDeveloper from "@/assets/hero-developer.jpg";
 import heroDefault from "@/assets/hero-default.jpg";
 
-/**
- * Image map: Maps the engine's heroImageKey to the actual imported asset.
- * Why static imports? Vite can optimize and hash these at build time,
- * ensuring cache-busted URLs in production.
- */
 const HERO_IMAGES: Record<string, string> = {
   gaming: heroGaming,
   productivity: heroProductivity,
   budget: heroBudget,
+  creative: heroCreative,
+  student: heroStudent,
+  developer: heroDeveloper,
   default: heroDefault,
 };
 
-/**
- * Intent-specific styles applied to the hero section.
- * These override CSS custom properties for the glow/accent effect.
- */
 const INTENT_STYLES: Record<IntentType, { overlayGradient: string; accentText: string }> = {
   gaming: {
     overlayGradient: "from-[hsl(180,10%,4%)] via-[hsl(180,10%,4%)/85%] to-transparent",
@@ -36,6 +33,18 @@ const INTENT_STYLES: Record<IntentType, { overlayGradient: string; accentText: s
   budget: {
     overlayGradient: "from-[hsl(155,10%,5%)] via-[hsl(155,10%,5%)/85%] to-transparent",
     accentText: "text-budget",
+  },
+  creative: {
+    overlayGradient: "from-[hsl(280,15%,5%)] via-[hsl(280,15%,5%)/85%] to-transparent",
+    accentText: "text-creative",
+  },
+  student: {
+    overlayGradient: "from-[hsl(25,15%,5%)] via-[hsl(25,15%,5%)/85%] to-transparent",
+    accentText: "text-student",
+  },
+  developer: {
+    overlayGradient: "from-[hsl(142,15%,4%)] via-[hsl(142,15%,4%)/85%] to-transparent",
+    accentText: "text-developer",
   },
   default: {
     overlayGradient: "from-[hsl(30,15%,4%)] via-[hsl(30,15%,4%)/85%] to-transparent",
@@ -75,7 +84,7 @@ const HeroSection = ({ variant }: HeroSectionProps) => {
         </motion.div>
       </AnimatePresence>
 
-      {/* Gradient Overlay — Ensures text readability */}
+      {/* Gradient Overlay */}
       <div className={`absolute inset-0 z-10 bg-gradient-to-r ${styles.overlayGradient}`} />
       <div className="absolute inset-0 z-10 bg-gradient-to-t from-background via-transparent to-transparent" />
 
@@ -88,7 +97,7 @@ const HeroSection = ({ variant }: HeroSectionProps) => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5, staggerChildren: 0.1 }}
+              transition={{ duration: 0.5 }}
             >
               {/* Intent Badge */}
               <motion.div
@@ -154,7 +163,7 @@ const HeroSection = ({ variant }: HeroSectionProps) => {
         </div>
       </div>
 
-      {/* Bottom fade into content area */}
+      {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-32 z-20 bg-gradient-to-t from-background to-transparent" />
     </section>
   );

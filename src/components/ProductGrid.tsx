@@ -3,10 +3,6 @@ import { Star, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { IntentType } from "@/lib/personalization-engine";
 
-/**
- * Mock product data. In production, this would come from a Shopify/API endpoint.
- * Products are tagged by intent so we can prioritize relevant ones.
- */
 interface Product {
   id: string;
   name: string;
@@ -23,7 +19,7 @@ const PRODUCTS: Product[] = [
   {
     id: "1",
     name: "VX27 Gaming Elite",
-    spec: "27\" 240Hz IPS | 1ms GtG",
+    spec: '27" 240Hz IPS | 1ms GtG',
     price: 449,
     rating: 4.8,
     reviews: 1243,
@@ -33,52 +29,83 @@ const PRODUCTS: Product[] = [
   {
     id: "2",
     name: "ProVision 4K Studio",
-    spec: "32\" 4K UHD | USB-C 90W",
+    spec: '32" 4K UHD | USB-C 90W',
     price: 699,
     rating: 4.9,
     reviews: 867,
-    tags: ["productivity"],
+    tags: ["productivity", "creative"],
     badge: "Editor's Choice",
   },
   {
     id: "3",
     name: "ClearView Essential",
-    spec: "24\" 1080p IPS | 75Hz",
+    spec: '24" 1080p IPS | 75Hz',
     price: 179,
     originalPrice: 249,
     rating: 4.5,
     reviews: 3421,
-    tags: ["budget"],
+    tags: ["budget", "student"],
     badge: "Best Value",
   },
   {
     id: "4",
     name: "UltraWide 34QR",
-    spec: "34\" WQHD Curved | 144Hz",
+    spec: '34" WQHD Curved | 144Hz',
     price: 549,
     rating: 4.7,
     reviews: 612,
-    tags: ["gaming", "productivity"],
+    tags: ["gaming", "developer"],
   },
   {
     id: "5",
+    name: "ColorMaster Pro 27",
+    spec: '27" 4K | 100% DCI-P3 | ΔE<1',
+    price: 899,
+    rating: 4.9,
+    reviews: 432,
+    tags: ["creative"],
+    badge: "Pro Choice",
+  },
+  {
+    id: "6",
     name: "DualView SE24",
-    spec: "24\" FHD | Borderless | VESA",
+    spec: '24" FHD | Borderless | VESA',
     price: 159,
     originalPrice: 199,
     rating: 4.4,
     reviews: 2089,
-    tags: ["budget", "productivity"],
+    tags: ["budget", "student", "developer"],
   },
   {
-    id: "6",
-    name: "ARC 49 SuperUltra",
-    spec: "49\" Dual QHD | 120Hz",
+    id: "7",
+    name: "DevStation 32:9",
+    spec: '49" Dual QHD | 120Hz | KVM',
     price: 1299,
     rating: 4.6,
     reviews: 341,
-    tags: ["gaming", "productivity"],
+    tags: ["developer", "productivity"],
     badge: "Premium",
+  },
+  {
+    id: "8",
+    name: "StudyBuddy 22",
+    spec: '22" FHD | Eye-Care | Built-in Speakers',
+    price: 129,
+    originalPrice: 169,
+    rating: 4.3,
+    reviews: 5612,
+    tags: ["student", "budget"],
+    badge: "Campus Pick",
+  },
+  {
+    id: "9",
+    name: "ARC 49 SuperUltra",
+    spec: '49" Dual QHD | 240Hz | HDR1000',
+    price: 1599,
+    rating: 4.8,
+    reviews: 278,
+    tags: ["gaming", "creative"],
+    badge: "Flagship",
   },
 ];
 
@@ -87,7 +114,6 @@ interface ProductGridProps {
 }
 
 const ProductGrid = ({ intent }: ProductGridProps) => {
-  // Sort products: matching intent first, then by rating
   const sortedProducts = [...PRODUCTS].sort((a, b) => {
     const aMatch = a.tags.includes(intent) ? 1 : 0;
     const bMatch = b.tags.includes(intent) ? 1 : 0;
@@ -95,10 +121,12 @@ const ProductGrid = ({ intent }: ProductGridProps) => {
     return b.rating - a.rating;
   });
 
+  // Show 6 products max
+  const displayProducts = sortedProducts.slice(0, 6);
+
   return (
     <section className="py-20 relative">
       <div className="container mx-auto px-4 lg:px-8">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -114,9 +142,8 @@ const ProductGrid = ({ intent }: ProductGridProps) => {
           </p>
         </motion.div>
 
-        {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedProducts.map((product, index) => (
+          {displayProducts.map((product, index) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 30 }}
@@ -125,7 +152,6 @@ const ProductGrid = ({ intent }: ProductGridProps) => {
               transition={{ duration: 0.4, delay: index * 0.08 }}
               className="group relative rounded-xl bg-card border border-border overflow-hidden hover:border-primary/30 transition-all duration-300"
             >
-              {/* Product Image Placeholder */}
               <div className="aspect-[4/3] bg-secondary/50 flex items-center justify-center relative overflow-hidden">
                 <div className="text-6xl opacity-20 group-hover:scale-110 transition-transform duration-500">
                   🖥️
@@ -140,25 +166,19 @@ const ProductGrid = ({ intent }: ProductGridProps) => {
                 )}
               </div>
 
-              {/* Product Info */}
               <div className="p-5">
                 <h3 className="font-display font-semibold text-foreground text-lg mb-1">
                   {product.name}
                 </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  {product.spec}
-                </p>
+                <p className="text-sm text-muted-foreground mb-3">{product.spec}</p>
 
-                {/* Rating */}
                 <div className="flex items-center gap-1.5 mb-4">
                   <div className="flex items-center gap-0.5">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
                         className={`w-3.5 h-3.5 ${
-                          i < Math.floor(product.rating)
-                            ? "fill-primary text-primary"
-                            : "text-border"
+                          i < Math.floor(product.rating) ? "fill-primary text-primary" : "text-border"
                         }`}
                       />
                     ))}
@@ -168,7 +188,6 @@ const ProductGrid = ({ intent }: ProductGridProps) => {
                   </span>
                 </div>
 
-                {/* Price & CTA */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-baseline gap-2">
                     <span className="text-2xl font-display font-bold text-foreground">
