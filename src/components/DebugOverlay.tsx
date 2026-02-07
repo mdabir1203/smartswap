@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bug, ChevronDown, ChevronUp, Zap, Eye, Brain, Shield, AlertTriangle, BarChart3, Layers, FileText, ShoppingCart, Search, Compass } from "lucide-react";
-import type { IntentResult, IntentType } from "@/lib/personalization-engine";
+import { Bug, ChevronDown, ChevronUp, Zap, Eye, Brain, Shield, AlertTriangle, BarChart3, Layers, FileText, ShoppingCart, Search, Compass, Copy, Check, Download } from "lucide-react";
+import { exportDecision, type IntentResult, type IntentType, type ExportableDecision } from "@/lib/personalization-engine";
 import type { BehaviorSignal } from "@/hooks/use-behavior-tracking";
 import type { SmartListenerState } from "@/hooks/use-smart-listener";
 import BehaviorPanel from "@/components/BehaviorPanel";
@@ -47,12 +47,40 @@ const FUNNEL_ICONS: Record<string, React.ElementType> = {
 
 const DebugOverlay = ({ result, behavior, smartListener }: DebugOverlayProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const intentInfo = INTENT_LABELS[result.intent];
   const confidenceColor = CONFIDENCE_COLORS[result.confidence];
   const maxScore = Math.max(...Object.values(result.scoreBreakdown), 0.1);
-
   const FunnelIcon = FUNNEL_ICONS[result.funnelStage] || Compass;
+
+  // Expose decision on window for external integrations
+  useEffect(() => {
+    const decision = exportDecision(result);
+    (window as any).__PIXELVUE_DECISION__ = decision;
+    window.dispatchEvent(new CustomEvent("pixelvue:decision", { detail: decision }));
+  }, [result]);
+
+  const handleCopyDecision = useCallback(() => {
+    const decision = exportDecision(result);
+    const json = JSON.stringify(decision, null, 2);
+    navigator.clipboard.writeText(json).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [result]);
+
+  const handleDownloadDecision = useCallback(() => {
+    const decision = exportDecision(result);
+    const json = JSON.stringify(decision, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pixelvue-decision-${decision.intent.toLowerCase()}-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [result]);
 
   return (
     <motion.div
@@ -113,21 +141,45 @@ const DebugOverlay = ({ result, behavior, smartListener }: DebugOverlayProps) =>
               <div className="flex items-start gap-2">
                 <FileText className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
                 <div className="flex-1">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-                    Structured Decision Object (§2.5)
-                  </p>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      Structured Decision Object (§2.5)
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={handleCopyDecision}
+                        className="flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                        title="Copy decision JSON to clipboard"
+                      >
+                        {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        {copied ? "Copied!" : "Copy"}
+                      </button>
+                      <button
+                        onClick={handleDownloadDecision}
+                        className="flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-medium bg-secondary text-foreground hover:bg-secondary/80 transition-colors"
+                        title="Download decision as JSON file"
+                      >
+                        <Download className="w-3 h-3" />
+                        .json
+                      </button>
+                    </div>
+                  </div>
                   <div className="code-block rounded-lg p-3 text-[10px] font-mono leading-relaxed space-y-0.5">
                     <p><span className="text-muted-foreground">{"{"}</span></p>
-                    <p>  <span className="text-creative">"intent"</span>: <span className="text-budget">"{result.intent}"</span>,</p>
+                    <p>  <span className="text-creative">"intent"</span>: <span className="text-budget">"{result.intent.toUpperCase()}"</span>,</p>
                     <p>  <span className="text-creative">"template"</span>: <span className="text-budget">"{result.templateId}"</span>,</p>
-                    <p>  <span className="text-creative">"hero_image"</span>: <span className="text-budget">"{result.heroImageKey}"</span>,</p>
+                    <p>  <span className="text-creative">"hero_image"</span>: <span className="text-budget">"hero-{result.heroImageKey}.jpg"</span>,</p>
                     <p>  <span className="text-creative">"cta"</span>: <span className="text-budget">"{result.ctaDecision.text}"</span>,</p>
                     <p>  <span className="text-creative">"cta_link"</span>: <span className="text-budget">"{result.ctaDecision.link}"</span>,</p>
-                    <p>  <span className="text-creative">"funnel_stage"</span>: <span className="text-budget">"{result.funnelStage}"</span>,</p>
+                    <p>  <span className="text-creative">"funnel_stage"</span>: <span className="text-budget">"{result.funnelStage.toUpperCase()}"</span>,</p>
                     <p>  <span className="text-creative">"section_order"</span>: <span className="text-budget">[{result.sectionOrder.map(s => `"${s}"`).join(", ")}]</span>,</p>
-                    <p>  <span className="text-creative">"reason"</span>: <span className="text-foreground/70">"{result.reasoning.slice(0, 60)}..."</span></p>
+                    <p>  <span className="text-creative">"confidence"</span>: <span className="text-budget">"{result.confidence}"</span>,</p>
+                    <p>  <span className="text-creative">"reason"</span>: <span className="text-foreground/70">"{result.reasoning.slice(0, 80)}..."</span></p>
                     <p><span className="text-muted-foreground">{"}"}</span></p>
                   </div>
+                  <p className="text-[9px] text-muted-foreground mt-1.5">
+                    Also available at <code className="text-primary font-mono">window.__PIXELVUE_DECISION__</code> and via <code className="text-primary font-mono">pixelvue:decision</code> event.
+                  </p>
                 </div>
               </div>
 
