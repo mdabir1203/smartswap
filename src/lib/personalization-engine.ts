@@ -35,6 +35,8 @@ export interface UserSignal {
   weight: number;
 }
 
+export type SectionId = "trust" | "products" | "funnel";
+
 export interface IntentResult {
   intent: IntentType;
   confidence: ConfidenceLevel;
@@ -44,6 +46,19 @@ export interface IntentResult {
   edgeCases: string[];
   /** All score breakdowns for transparency */
   scoreBreakdown: Record<string, number>;
+  /** === DECISION OUTPUT (§2.5 spec compliance) === */
+  /** Funnel stage: Buy (ready to purchase), Compare (researching), Explore (discovering) */
+  funnelStage: FunnelStage;
+  /** Template ID selected from the registry */
+  templateId: string;
+  /** Primary CTA decision — what action the engine prioritizes */
+  ctaDecision: { text: string; link: string; priority: "buy" | "compare" | "explore" };
+  /** Page section order decided by the engine */
+  sectionOrder: SectionId[];
+  /** Hero image key chosen */
+  heroImageKey: string;
+  /** Injection log — what was changed and why (§2.6) */
+  injectionLog: string[];
 }
 
 export type FunnelStage = "buy" | "compare" | "explore";
@@ -446,13 +461,49 @@ export function collectSignals(searchParams: URLSearchParams, referrer: string =
   return { signals, edgeCases };
 }
 
+// ---------------------
+// DECISION MAPS (§2.5 + §2.6)
+// ---------------------
+
 /**
- * Stage 2: INTENT RESOLUTION (v2 with edge case handling)
+ * Maps each intent to a template ID from the registry.
+ * This is the engine's decision about WHICH LAYOUT to use.
+ */
+const INTENT_TEMPLATE_MAP: Record<IntentType, string> = {
+  gaming: "hero_centered",
+  creative: "hero_centered",
+  productivity: "hero_split",
+  developer: "hero_split",
+  budget: "hero_minimal",
+  student: "hero_minimal",
+  default: "hero_centered",
+};
+
+/**
+ * Section reordering map — defines page section order per funnel stage.
+ * 
+ * §2.6 Spec: "optionally section order" — the engine decides this, not the UI.
+ * 
+ *   Buy:     Products first → they're ready to purchase
+ *   Compare: Funnel CTA first → comparison tool is most useful
+ *   Explore: Trust first → build confidence before anything else
+ */
+export const SECTION_ORDER_MAP: Record<FunnelStage, SectionId[]> = {
+  buy:     ["products", "trust", "funnel"],
+  compare: ["funnel", "products", "trust"],
+  explore: ["trust", "funnel", "products"],
+};
+/**
+ * Stage 2: INTENT RESOLUTION (v3 with full decision output)
+ * 
+ * Now outputs a COMPLETE structured decision object per §2.5 spec:
+ *   { intent, template, hero_image, cta, funnelStage, sectionOrder, reason }
  */
 export function resolveIntent(signals: UserSignal[], edgeCases: string[]): IntentResult {
   const allIntents: IntentType[] = ["gaming", "productivity", "budget", "creative", "student", "developer"];
   
   if (signals.length === 0) {
+    const variant = CONTENT_VARIANTS.default;
     return {
       intent: "default",
       confidence: "low",
@@ -460,6 +511,12 @@ export function resolveIntent(signals: UserSignal[], edgeCases: string[]): Inten
       reasoning: "No personalization signals detected. Showing default experience.",
       edgeCases,
       scoreBreakdown: Object.fromEntries(allIntents.map(i => [i, 0])),
+      funnelStage: variant.funnelStage,
+      templateId: "hero_centered",
+      ctaDecision: { text: variant.ctaText, link: variant.ctaLink, priority: variant.funnelStage },
+      sectionOrder: SECTION_ORDER_MAP[variant.funnelStage],
+      heroImageKey: variant.heroImageKey,
+      injectionLog: ["No signals → default variant", "Section order: trust → funnel → products (explore)"],
     };
   }
 
@@ -476,7 +533,6 @@ export function resolveIntent(signals: UserSignal[], edgeCases: string[]): Inten
     .map(intent => ({ intent, score: scores[intent] || 0 }))
     .sort((a, b) => {
       if (Math.abs(b.score - a.score) < 0.05) {
-        // EDGE CASE: Tiebreaker — use priority matrix
         return INTENT_PRIORITY.indexOf(a.intent) - INTENT_PRIORITY.indexOf(b.intent);
       }
       return b.score - a.score;
@@ -485,7 +541,6 @@ export function resolveIntent(signals: UserSignal[], edgeCases: string[]): Inten
   const top = sortedIntents[0];
   const second = sortedIntents[1];
 
-  // EDGE CASE: Check if top two are very close (conflict)
   const scoreDiff = top.score - second.score;
   if (scoreDiff > 0 && scoreDiff < 0.15 && top.score >= 0.4) {
     edgeCases.push(
@@ -521,6 +576,25 @@ export function resolveIntent(signals: UserSignal[], edgeCases: string[]): Inten
         scoreDiff < 0.2 ? ` Close runner-up: ${second.intent} at ${second.score.toFixed(2)}.` : ""
       }`;
 
+  // === DECISION OUTPUT (§2.5) ===
+  const variant = CONTENT_VARIANTS[finalIntent] || CONTENT_VARIANTS.default;
+  const templateMapping = INTENT_TEMPLATE_MAP[finalIntent] || INTENT_TEMPLATE_MAP.default;
+  const sectionOrder = SECTION_ORDER_MAP[variant.funnelStage];
+
+  // Build injection log (§2.6 — "logs what happened")
+  const injectionLog: string[] = [
+    `Intent resolved: ${finalIntent} (${confidence})`,
+    `Template selected: ${templateMapping}`,
+    `Funnel stage: ${variant.funnelStage} → CTA priority: ${variant.funnelStage}`,
+    `Hero image: ${variant.heroImageKey}`,
+    `Section order: ${sectionOrder.join(" → ")}`,
+    `Primary CTA: "${variant.ctaText}" → ${variant.ctaLink}`,
+  ];
+
+  if (edgeCases.length > 0) {
+    injectionLog.push(`Edge cases handled: ${edgeCases.length}`);
+  }
+
   return {
     intent: finalIntent,
     confidence,
@@ -528,6 +602,16 @@ export function resolveIntent(signals: UserSignal[], edgeCases: string[]): Inten
     reasoning,
     edgeCases,
     scoreBreakdown: scores,
+    funnelStage: variant.funnelStage,
+    templateId: templateMapping,
+    ctaDecision: {
+      text: variant.ctaText,
+      link: variant.ctaLink,
+      priority: variant.funnelStage,
+    },
+    sectionOrder,
+    heroImageKey: variant.heroImageKey,
+    injectionLog,
   };
 }
 

@@ -1,16 +1,10 @@
 /**
  * INDEX PAGE — The Mock E-Commerce Store
  * 
- * This is the "Store" that the personalization widget operates on.
- * It simulates a real Shopify/Webflow monitor store with:
- *   - Dynamic hero (swapped by the AI engine)
- *   - Trust bar (social proof)
- *   - Product grid (sorted by detected intent)
- *   - Funnel-stage CTA banner (Buy / Compare / Explore)
- *   - Section reordering based on intent
- *   - Debug overlay (SMB owner trust-builder)
- *   - Persona toggle (manual intent switcher)
- *   - Behavior tracking (scroll/click in first 5s)
+ * Section ordering is now driven by the DECISION ENGINE's output
+ * (result.sectionOrder), not hardcoded in the UI layer.
+ * This satisfies §2.6: "On page load, your script determines context,
+ * queries decision engine, swaps assets/text in DOM safely, logs what happened."
  */
 
 import { Link } from "react-router-dom";
@@ -23,29 +17,14 @@ import ProductGrid from "@/components/ProductGrid";
 import FunnelBanner from "@/components/FunnelBanner";
 import DebugOverlay from "@/components/DebugOverlay";
 import PersonaToggle from "@/components/PersonaToggle";
-import type { FunnelStage } from "@/lib/personalization-engine";
-
-/**
- * SECTION REORDERING LOGIC
- * 
- * Different funnel stages prioritize different sections:
- *   - Buy:     Products first (they're ready to purchase), then trust, then funnel CTA
- *   - Compare: Funnel banner first (comparison tool), then products, then trust
- *   - Explore: Trust first (build confidence), then funnel CTA (quiz), then products
- */
-type SectionId = "trust" | "products" | "funnel";
-
-const SECTION_ORDER: Record<FunnelStage, SectionId[]> = {
-  buy:     ["products", "trust", "funnel"],
-  compare: ["funnel", "products", "trust"],
-  explore: ["trust", "funnel", "products"],
-};
+import type { SectionId } from "@/lib/personalization-engine";
 
 const Index = () => {
   const { variant, result } = usePersonalization();
   const behavior = useBehaviorTracking(true);
 
-  const sectionOrder = SECTION_ORDER[variant.funnelStage] || SECTION_ORDER.explore;
+  // §2.6: Section order comes from the ENGINE'S decision, not UI logic
+  const sectionOrder = result.sectionOrder;
 
   const sections: Record<SectionId, React.ReactNode> = {
     trust: <TrustBar key="trust" />,
@@ -58,7 +37,7 @@ const Index = () => {
       <StoreNav intent={result.intent} />
       <HeroSection variant={variant} />
 
-      {/* Reordered sections based on funnel stage */}
+      {/* §2.6: Reordered sections — order decided by personalization engine */}
       {sectionOrder.map((sectionId) => sections[sectionId])}
 
       <DebugOverlay result={result} behavior={behavior} />
@@ -79,7 +58,7 @@ const Index = () => {
           </p>
           <p className="text-xs text-muted-foreground mt-2">
             Section order: <code className="font-mono text-primary">{sectionOrder.join(" → ")}</code>
-            <span className="text-muted-foreground/60"> (funnel: {variant.funnelStage})</span>
+            <span className="text-muted-foreground/60"> (funnel: {result.funnelStage})</span>
           </p>
           <p className="text-xs text-muted-foreground mt-3">
             <Link to="/integrate" className="text-primary hover:underline">
