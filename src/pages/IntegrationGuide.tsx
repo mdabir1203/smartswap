@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 import {
   Code, Copy, Check, ChevronRight, Zap, Shield, BarChart3,
   Monitor, ArrowLeft, Globe, Layers, Puzzle, Settings, Play,
-  ShoppingBag, ExternalLink
+  ShoppingBag, ExternalLink, Database
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ALL_INTENTS, CONTENT_VARIANTS, type IntentType } from "@/lib/personalization-engine";
+import { HERO_TEMPLATES, TEMPLATE_MAPPINGS } from "@/lib/template-registry";
+import InstallWizard from "@/components/InstallWizard";
 
 /**
  * INTEGRATION GUIDE PAGE
@@ -207,6 +209,104 @@ const IntegrationGuide = () => {
                 )}
               </motion.div>
             ))}
+          </div>
+        </section>
+
+        {/* Simulated Install Wizard */}
+        <section className="container mx-auto px-4 lg:px-8 mb-24">
+          <h2 className="text-2xl font-display font-bold text-foreground mb-3">
+            Try the Install Wizard
+          </h2>
+          <p className="text-muted-foreground mb-8">
+            Experience the onboarding flow your store owners will see. Connect → Configure → Activate in under 2 minutes.
+          </p>
+          <InstallWizard />
+        </section>
+
+        {/* Template Registry Documentation */}
+        <section className="container mx-auto px-4 lg:px-8 mb-24">
+          <h2 className="text-2xl font-display font-bold text-foreground mb-3">
+            Template Registry
+          </h2>
+          <p className="text-muted-foreground mb-8">
+            The system uses a finite set of hero layouts mapped to visitor intents. Each template defines how content is arranged — not what content is shown.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            {Object.values(HERO_TEMPLATES).map((tmpl) => (
+              <motion.div
+                key={tmpl.id}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="p-5 rounded-xl bg-card border border-border"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <Database className="w-4 h-4 text-primary" />
+                  <h3 className="font-display font-semibold text-foreground text-sm">{tmpl.name}</h3>
+                </div>
+                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-primary/10 text-primary mb-3">
+                  {tmpl.layoutType}
+                </span>
+                <p className="text-xs text-muted-foreground mb-3">{tmpl.description}</p>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Content Slots</p>
+                  <div className="flex flex-wrap gap-1">
+                    {tmpl.slots.map((slot) => (
+                      <span
+                        key={slot.name}
+                        className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${
+                          slot.required ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"
+                        }`}
+                      >
+                        {slot.name}{slot.required ? "*" : ""}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-border">
+                  <p className="text-[10px] text-muted-foreground">
+                    Alignment: <span className="text-foreground font-medium">{tmpl.config.contentAlignment}</span> · 
+                    Image: <span className="text-foreground font-medium">{tmpl.config.imagePosition}</span> · 
+                    CTA: <span className="text-foreground font-medium">{tmpl.config.ctaStyle}</span>
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Intent → Template Mapping Table */}
+          <div className="rounded-xl bg-card border border-border overflow-hidden">
+            <div className="px-4 py-3 border-b border-border bg-secondary/30">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-primary" />
+                <span className="text-xs font-display font-semibold text-foreground">Intent → Template Mapping</span>
+              </div>
+            </div>
+            <div className="divide-y divide-border">
+              {TEMPLATE_MAPPINGS.map((mapping) => {
+                const tmpl = HERO_TEMPLATES[mapping.templateId];
+                return (
+                  <div key={mapping.intent} className="flex items-center justify-between px-4 py-3 text-xs">
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold text-foreground capitalize w-24">{mapping.intent}</span>
+                      <span className="text-muted-foreground">→</span>
+                      <code className="font-mono text-primary">{mapping.templateId}</code>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-secondary text-muted-foreground">
+                        {tmpl?.layoutType}
+                      </span>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                      mapping.funnelStage === "buy" ? "bg-budget/10 text-budget" :
+                      mapping.funnelStage === "compare" ? "bg-productivity/10 text-productivity" :
+                      "bg-primary/10 text-primary"
+                    }`}>
+                      {mapping.funnelStage}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
 
