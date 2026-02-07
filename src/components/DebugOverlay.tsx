@@ -3,7 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Bug, ChevronDown, ChevronUp, Zap, Eye, Brain, Shield, AlertTriangle, BarChart3, Layers, FileText, ShoppingCart, Search, Compass } from "lucide-react";
 import type { IntentResult, IntentType } from "@/lib/personalization-engine";
 import type { BehaviorSignal } from "@/hooks/use-behavior-tracking";
+import type { SmartListenerState } from "@/hooks/use-smart-listener";
 import BehaviorPanel from "@/components/BehaviorPanel";
+import SmartListenerPanel from "@/components/SmartListenerPanel";
+import DirectorsCutPanel from "@/components/DirectorsCutPanel";
 
 interface BehaviorState {
   signals: BehaviorSignal[];
@@ -17,6 +20,7 @@ interface BehaviorState {
 interface DebugOverlayProps {
   result: IntentResult;
   behavior?: BehaviorState;
+  smartListener?: SmartListenerState;
 }
 
 const CONFIDENCE_COLORS: Record<string, string> = {
@@ -41,14 +45,13 @@ const FUNNEL_ICONS: Record<string, React.ElementType> = {
   explore: Compass,
 };
 
-const DebugOverlay = ({ result, behavior }: DebugOverlayProps) => {
+const DebugOverlay = ({ result, behavior, smartListener }: DebugOverlayProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const intentInfo = INTENT_LABELS[result.intent];
   const confidenceColor = CONFIDENCE_COLORS[result.confidence];
   const maxScore = Math.max(...Object.values(result.scoreBreakdown), 0.1);
 
-  // §2.5: Read funnel stage from engine decision, not hardcoded
   const FunnelIcon = FUNNEL_ICONS[result.funnelStage] || Compass;
 
   return (
@@ -76,7 +79,7 @@ const DebugOverlay = ({ result, behavior }: DebugOverlayProps) => {
         )}
       </button>
 
-      {/* Quick Status — all from engine decision */}
+      {/* Quick Status */}
       <div className="px-4 pb-3 flex items-center gap-2 text-xs flex-wrap">
         <span className="text-muted-foreground">
           {intentInfo.icon} <span className="text-foreground font-medium">{intentInfo.label}</span>
@@ -106,7 +109,7 @@ const DebugOverlay = ({ result, behavior }: DebugOverlayProps) => {
           >
             <div className="px-4 py-3 space-y-3">
 
-              {/* §2.5: Structured Decision Object — the spec's required output */}
+              {/* Structured Decision Object */}
               <div className="flex items-start gap-2">
                 <FileText className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
                 <div className="flex-1">
@@ -150,7 +153,7 @@ const DebugOverlay = ({ result, behavior }: DebugOverlayProps) => {
                 </div>
               </div>
 
-              {/* Section Order from engine */}
+              {/* Section Order */}
               <div className="flex items-start gap-2">
                 <Layers className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
                 <div>
@@ -172,7 +175,7 @@ const DebugOverlay = ({ result, behavior }: DebugOverlayProps) => {
                 </div>
               </div>
 
-              {/* Injection Log (§2.6) */}
+              {/* Injection Log */}
               <div className="flex items-start gap-2">
                 <FileText className="w-3.5 h-3.5 text-developer mt-0.5 shrink-0" />
                 <div className="flex-1">
@@ -214,8 +217,20 @@ const DebugOverlay = ({ result, behavior }: DebugOverlayProps) => {
                 />
               )}
 
+              {/* Smart Listener Panel */}
+              {smartListener && (
+                <div className="pt-2 border-t border-border">
+                  <SmartListenerPanel state={smartListener} />
+                </div>
+              )}
+
+              {/* Director's Cut Panel */}
+              <div className="pt-2 border-t border-border">
+                <DirectorsCutPanel currentIntent={result.intent} />
+              </div>
+
               {/* Score Breakdown */}
-              <div className="flex items-start gap-2">
+              <div className="flex items-start gap-2 pt-2 border-t border-border">
                 <BarChart3 className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
                 <div className="flex-1">
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
