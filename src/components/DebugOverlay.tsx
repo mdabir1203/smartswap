@@ -57,8 +57,8 @@ const DebugOverlay = ({ result, behavior, smartListener }: DebugOverlayProps) =>
   // Expose decision on window for external integrations
   useEffect(() => {
     const decision = exportDecision(result);
-    (window as any).__PIXELVUE_DECISION__ = decision;
-    window.dispatchEvent(new CustomEvent("pixelvue:decision", { detail: decision }));
+    (window as any).__SMARTSWAP_DECISION__ = decision;
+    window.dispatchEvent(new CustomEvent("smartswap:decision", { detail: decision }));
   }, [result]);
 
   const handleCopyDecision = useCallback(() => {
@@ -77,7 +77,7 @@ const DebugOverlay = ({ result, behavior, smartListener }: DebugOverlayProps) =>
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `pixelvue-decision-${decision.intent.toLowerCase()}-${Date.now()}.json`;
+    a.download = `smartswap-decision-${decision.intent.toLowerCase()}-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }, [result]);
@@ -178,7 +178,7 @@ const DebugOverlay = ({ result, behavior, smartListener }: DebugOverlayProps) =>
                     <p><span className="text-muted-foreground">{"}"}</span></p>
                   </div>
                   <p className="text-[9px] text-muted-foreground mt-1.5">
-                    Also available at <code className="text-primary font-mono">window.__PIXELVUE_DECISION__</code> and via <code className="text-primary font-mono">pixelvue:decision</code> event.
+                    Also available at <code className="text-primary font-mono">window.__SMARTSWAP_DECISION__</code> and via <code className="text-primary font-mono">smartswap:decision</code> event.
                   </p>
                 </div>
               </div>

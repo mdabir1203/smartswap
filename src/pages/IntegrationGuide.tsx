@@ -35,10 +35,10 @@ const PLATFORMS = [
       'Paste the script tag before the closing </head> tag',
       'Click "Save" — you\'re done!',
     ],
-    codeSnippet: `<!-- PixelVue AI Personalization Widget -->
+    codeSnippet: `<!-- SmartSwap AI Personalization Widget -->
 <!-- Add this to your theme.liquid before </head> -->
 <script 
-  src="https://cdn.pixelvue.ai/widget.js" 
+  src="https://cdn.smartswap.ai/widget.js"
   data-store-id="YOUR_STORE_ID"
   data-hero-selector="#hero-container"
   data-cta-selector=".hero-cta"
@@ -57,10 +57,10 @@ const PLATFORMS = [
       'Add the data-hero-selector attribute matching your hero div\'s class',
       'Publish your site',
     ],
-    codeSnippet: `<!-- PixelVue AI Personalization Widget -->
+    codeSnippet: `<!-- SmartSwap AI Personalization Widget -->
 <!-- Add to Webflow Project Settings → Custom Code → Head -->
 <script 
-  src="https://cdn.pixelvue.ai/widget.js" 
+  src="https://cdn.smartswap.ai/widget.js"
   data-store-id="YOUR_STORE_ID"
   data-hero-selector=".hero-section"
   data-cta-selector=".hero-cta-button"
@@ -80,9 +80,9 @@ const PLATFORMS = [
       'Configure selectors via data attributes',
       'Reload — the widget activates automatically',
     ],
-    codeSnippet: `<!-- PixelVue AI Personalization Widget -->
+    codeSnippet: `<!-- SmartSwap AI Personalization Widget -->
 <script 
-  src="https://cdn.pixelvue.ai/widget.js" 
+  src="https://cdn.smartswap.ai/widget.js"
   data-store-id="YOUR_STORE_ID"
   data-hero-selector="#hero-container"
   data-cta-selector="#hero-cta"
@@ -151,7 +151,7 @@ const IntegrationGuide = () => {
             <ArrowLeft className="w-4 h-4" />
             <Monitor className="w-5 h-5 text-primary" />
             <span className="font-display font-bold text-foreground">
-              Pixel<span className="text-primary">Vue</span>
+              Smart<span className="text-primary">Swap</span>
             </span>
           </button>
           <span className="text-xs text-muted-foreground font-mono">Integration Guide v2.0</span>
@@ -749,7 +749,7 @@ const IntegrationGuide = () => {
                 <p className="text-muted-foreground">│  <span className="text-primary font-bold">VISITOR BROWSER</span>                                                │</p>
                 <p className="text-muted-foreground">│                                                                  │</p>
                 <p className="text-muted-foreground">│  ┌─────────────┐    ┌───────────────────────────────────────┐   │</p>
-                <p className="text-muted-foreground">│  │ <span className="text-foreground">URL Signals</span> │──→ │ <span className="text-gaming font-bold">PixelVue Widget</span> (12KB gzip)         │   │</p>
+                <p className="text-muted-foreground">│  │ <span className="text-foreground">URL Signals</span> │──→ │ <span className="text-gaming font-bold">SmartSwap Widget</span> (12KB gzip)        │   │</p>
                 <p className="text-muted-foreground">│  │ utm_campaign │    │                                       │   │</p>
                 <p className="text-muted-foreground">│  │ referrer     │    │  ┌─────────┐  ┌──────┐  ┌──────────┐ │   │</p>
                 <p className="text-muted-foreground">│  │ query params │    │  │ <span className="text-productivity">Collect</span> │→ │ <span className="text-creative">Score</span> │→ │ <span className="text-budget">Swap DOM</span> │ │   │</p>
@@ -807,7 +807,7 @@ const IntegrationGuide = () => {
       <footer className="py-12 border-t border-border">
         <div className="container mx-auto px-4 lg:px-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © 2026 PixelVue AI Personalization Layer — Integration Demo
+            © 2026 SmartSwap AI Personalization Layer — Integration Demo
           </p>
         </div>
       </footer>

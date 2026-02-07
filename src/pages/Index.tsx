@@ -56,7 +56,7 @@ const Index = () => {
       <footer className="py-12 border-t border-border">
         <div className="container mx-auto px-4 lg:px-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © 2026 PixelVue Monitors — AI Personalization Layer Demo
+            © 2026 SmartSwap Monitors — AI Personalization Layer Demo
           </p>
           <p className="text-xs text-muted-foreground mt-2">
             Try: <code className="font-mono text-primary">?utm_campaign=gaming</code> · 

@@ -74,9 +74,9 @@ const InstallWizard = () => {
     setCopiedSnippet(false);
   };
 
-  const generatedSnippet = `<!-- PixelVue AI Personalization -->
+  const generatedSnippet = `<!-- SmartSwap AI Personalization -->
 <script 
-  src="https://cdn.pixelvue.ai/widget.js" 
+  src="https://cdn.smartswap.ai/widget.js"
   data-store-id="${storeUrl ? btoa(storeUrl).slice(0, 12) : 'YOUR_ID'}"
   data-hero-selector="${heroSelector}"
   data-cta-selector="${ctaSelector}"
@@ -398,7 +398,7 @@ const InstallWizard = () => {
                 You're Live! 🎉
               </h3>
               <p className="text-muted-foreground mb-2 max-w-md mx-auto">
-                The PixelVue AI personalization layer is now active on <strong className="text-foreground">{storeUrl}</strong>.
+                The SmartSwap AI personalization layer is now active on <strong className="text-foreground">{storeUrl}</strong>.
               </p>
               <p className="text-sm text-muted-foreground mb-8 max-w-md mx-auto">
                 Every visitor will now see a hero experience tailored to their intent.
