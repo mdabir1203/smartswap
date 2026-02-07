@@ -3,13 +3,15 @@
  * 
  * Section ordering is now driven by the DECISION ENGINE's output
  * (result.sectionOrder), not hardcoded in the UI layer.
- * This satisfies §2.6: "On page load, your script determines context,
- * queries decision engine, swaps assets/text in DOM safely, logs what happened."
+ * 
+ * Smart Listener is initialized via requestIdleCallback (non-blocking)
+ * and feeds semantic events into the Event Ledger for batched processing.
  */
 
 import { Link } from "react-router-dom";
 import { usePersonalization } from "@/hooks/use-personalization";
 import { useBehaviorTracking } from "@/hooks/use-behavior-tracking";
+import { useSmartListener } from "@/hooks/use-smart-listener";
 import StoreNav from "@/components/StoreNav";
 import HeroSection from "@/components/HeroSection";
 import TrustBar from "@/components/TrustBar";
@@ -22,6 +24,13 @@ import type { SectionId } from "@/lib/personalization-engine";
 const Index = () => {
   const { variant, result } = usePersonalization();
   const behavior = useBehaviorTracking(true);
+  const smartListener = useSmartListener({
+    enabled: true,
+    listenerConfig: {
+      variantId: result.intent,
+      funnelStage: result.funnelStage,
+    },
+  });
 
   // §2.6: Section order comes from the ENGINE'S decision, not UI logic
   const sectionOrder = result.sectionOrder;
@@ -40,7 +49,7 @@ const Index = () => {
       {/* §2.6: Reordered sections — order decided by personalization engine */}
       {sectionOrder.map((sectionId) => sections[sectionId])}
 
-      <DebugOverlay result={result} behavior={behavior} />
+      <DebugOverlay result={result} behavior={behavior} smartListener={smartListener} />
       <PersonaToggle />
 
       {/* Footer */}
