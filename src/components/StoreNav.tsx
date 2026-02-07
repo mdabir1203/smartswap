@@ -1,8 +1,9 @@
-import { Monitor, ShoppingCart, Menu, Code } from "lucide-react";
+import { ShoppingCart, Menu, Code } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import LiveSearchBar from "@/components/LiveSearchBar";
 import type { IntentType } from "@/lib/personalization-engine";
+import smartswapLogo from "@/assets/smartswap-logo.png";
 
 interface StoreNavProps {
   intent: IntentType;
@@ -24,7 +25,7 @@ const StoreNav = ({ intent }: StoreNavProps) => {
       <div className="container mx-auto flex items-center justify-between h-16 px-4 lg:px-8">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <Monitor className={`w-6 h-6 ${intentAccentClass[intent]} transition-colors duration-700`} />
+          <img src={smartswapLogo} alt="SmartSwap" className="w-8 h-8 rounded-md" />
           <span className="font-display text-xl font-bold tracking-tight text-foreground">
             Smart<span className={`${intentAccentClass[intent]} transition-colors duration-700`}>Swap</span>
           </span>
