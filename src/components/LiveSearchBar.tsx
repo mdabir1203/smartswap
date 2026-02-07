@@ -13,12 +13,70 @@ const SUGGESTION_CHIPS = [
   { label: "Office", query: "productivity ergonomic 4k" },
 ];
 
+const TYPING_PHRASES = [
+  "gaming monitor 144hz",
+  "cheap affordable monitor",
+  "color accurate design",
+  "ultrawide coding setup",
+  "student dorm study",
+  "productivity ergonomic 4k",
+];
+
+const useTypewriter = (phrases: string[], enabled: boolean) => {
+  const [displayText, setDisplayText] = useState("");
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    if (!enabled) {
+      setDisplayText("");
+      return;
+    }
+
+    const currentPhrase = phrases[phraseIndex];
+
+    const timeout = setTimeout(
+      () => {
+        if (!isDeleting) {
+          // Typing forward
+          setDisplayText(currentPhrase.slice(0, charIndex + 1));
+          setCharIndex((prev) => prev + 1);
+
+          if (charIndex + 1 === currentPhrase.length) {
+            // Pause at end before deleting
+            setTimeout(() => setIsDeleting(true), 1800);
+          }
+        } else {
+          // Deleting
+          setDisplayText(currentPhrase.slice(0, charIndex - 1));
+          setCharIndex((prev) => prev - 1);
+
+          if (charIndex <= 1) {
+            setIsDeleting(false);
+            setCharIndex(0);
+            setPhraseIndex((prev) => (prev + 1) % phrases.length);
+          }
+        }
+      },
+      isDeleting ? 35 : 70
+    );
+
+    return () => clearTimeout(timeout);
+  }, [charIndex, isDeleting, phraseIndex, phrases, enabled]);
+
+  return displayText;
+};
+
 const LiveSearchBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Typewriter effect when input is empty and open
+  const typewriterText = useTypewriter(TYPING_PHRASES, isOpen && query === "");
 
   // Sync input with current URL q param on mount
   useEffect(() => {
@@ -117,15 +175,26 @@ const LiveSearchBar = () => {
             {/* Input row */}
             <div className="flex items-center gap-1 rounded-lg border border-border bg-card/80 backdrop-blur-sm px-3 py-1.5 focus-within:ring-1 focus-within:ring-ring">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                placeholder="Try: gaming, cheap, design, coding..."
-                className="bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground w-[200px] md:w-[280px]"
-              />
+              <div className="relative w-[200px] md:w-[280px]">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={query}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder=""
+                  className="bg-transparent border-none outline-none text-sm text-foreground w-full relative z-10"
+                />
+                {/* Typewriter overlay when input is empty */}
+                {!query && (
+                  <div className="absolute inset-0 flex items-center pointer-events-none">
+                    <span className="text-sm text-muted-foreground">
+                      {typewriterText}
+                    </span>
+                    <span className="w-[2px] h-4 bg-primary/70 ml-[1px] animate-pulse" />
+                  </div>
+                )}
+              </div>
               {query && (
                 <button
                   onClick={handleClear}
