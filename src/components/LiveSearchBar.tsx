@@ -213,43 +213,8 @@ const LiveSearchBar = () => {
               </button>
             </div>
 
-            {/* Suggestion chips dropdown */}
-            <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.2 }}
-              className="absolute top-full right-0 mt-2 p-3 rounded-lg border border-border bg-card/95 backdrop-blur-md shadow-lg z-50 min-w-[300px]"
-            >
-              <div className="flex items-center gap-1.5 mb-2">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-medium text-muted-foreground">
-                  Try a persona — page adapts in real-time
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {SUGGESTION_CHIPS.map((chip) => (
-                  <button
-                    key={chip.label}
-                    onClick={() => handleChipClick(chip.query)}
-                    className={`
-                      px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200
-                      ${
-                        activeChip?.label === chip.label
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                      }
-                    `}
-                  >
-                    {chip.label}
-                  </button>
-                ))}
-              </div>
-              {query && (
-                <p className="text-[10px] text-muted-foreground mt-2 font-mono">
-                  Live signal: <span className="text-primary">?q={query}</span>
-                </p>
-              )}
-            </motion.div>
+
+
           </motion.div>
         )}
       </AnimatePresence>
