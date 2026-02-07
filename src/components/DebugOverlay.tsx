@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bug, ChevronDown, ChevronUp, Zap, Eye, Brain, Shield, AlertTriangle, BarChart3, Layers } from "lucide-react";
+import { Bug, ChevronDown, ChevronUp, Zap, Eye, Brain, Shield, AlertTriangle, BarChart3, Layers, FileText, ShoppingCart, Search, Compass } from "lucide-react";
 import type { IntentResult, IntentType } from "@/lib/personalization-engine";
 import type { BehaviorSignal } from "@/hooks/use-behavior-tracking";
 import BehaviorPanel from "@/components/BehaviorPanel";
@@ -35,16 +35,10 @@ const INTENT_LABELS: Record<IntentType, { icon: string; label: string }> = {
   default: { icon: "🏠", label: "Default" },
 };
 
-const FUNNEL_LABELS: Record<string, string> = {
-  buy: "🛒 Buy",
-  compare: "🔍 Compare",
-  explore: "🌍 Explore",
-};
-
-const SECTION_ORDER_LABELS: Record<string, string> = {
-  buy: "Products → Trust → Funnel CTA",
-  compare: "Funnel CTA → Products → Trust",
-  explore: "Trust → Funnel CTA → Products",
+const FUNNEL_ICONS: Record<string, React.ElementType> = {
+  buy: ShoppingCart,
+  compare: Search,
+  explore: Compass,
 };
 
 const DebugOverlay = ({ result, behavior }: DebugOverlayProps) => {
@@ -54,17 +48,15 @@ const DebugOverlay = ({ result, behavior }: DebugOverlayProps) => {
   const confidenceColor = CONFIDENCE_COLORS[result.confidence];
   const maxScore = Math.max(...Object.values(result.scoreBreakdown), 0.1);
 
-  // Determine funnel stage from the variant
-  const funnelStage = result.intent === "default" ? "explore" :
-    ["gaming", "budget"].includes(result.intent) ? "buy" :
-    ["productivity", "developer"].includes(result.intent) ? "compare" : "explore";
+  // §2.5: Read funnel stage from engine decision, not hardcoded
+  const FunnelIcon = FUNNEL_ICONS[result.funnelStage] || Compass;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: 1, duration: 0.4 }}
-      className="fixed bottom-4 right-4 z-[100] w-[340px] glass-panel rounded-xl shadow-2xl overflow-hidden"
+      className="fixed bottom-4 right-4 z-[100] w-[360px] glass-panel rounded-xl shadow-2xl overflow-hidden"
     >
       {/* Header */}
       <button
@@ -74,7 +66,7 @@ const DebugOverlay = ({ result, behavior }: DebugOverlayProps) => {
         <div className="flex items-center gap-2">
           <Bug className="w-4 h-4 text-primary" />
           <span className="text-xs font-display font-semibold text-foreground tracking-wide">
-            AI PERSONALIZATION v3
+            AI ENGINE v3 — DECISION OUTPUT
           </span>
         </div>
         {isExpanded ? (
@@ -84,16 +76,21 @@ const DebugOverlay = ({ result, behavior }: DebugOverlayProps) => {
         )}
       </button>
 
-      {/* Quick Status */}
-      <div className="px-4 pb-3 flex items-center gap-3 text-xs flex-wrap">
+      {/* Quick Status — all from engine decision */}
+      <div className="px-4 pb-3 flex items-center gap-2 text-xs flex-wrap">
         <span className="text-muted-foreground">
           {intentInfo.icon} <span className="text-foreground font-medium">{intentInfo.label}</span>
         </span>
-        <span className="text-muted-foreground">•</span>
+        <span className="text-border">|</span>
         <span className={`font-semibold uppercase ${confidenceColor}`}>{result.confidence}</span>
-        <span className="text-muted-foreground">•</span>
-        <span className="text-muted-foreground">
-          {FUNNEL_LABELS[funnelStage] || "🌍 Explore"}
+        <span className="text-border">|</span>
+        <span className="flex items-center gap-1 text-muted-foreground">
+          <FunnelIcon className="w-3 h-3" />
+          <span className="capitalize font-medium text-foreground">{result.funnelStage}</span>
+        </span>
+        <span className="text-border">|</span>
+        <span className="font-mono text-[10px] text-muted-foreground">
+          {result.templateId}
         </span>
       </div>
 
@@ -108,6 +105,90 @@ const DebugOverlay = ({ result, behavior }: DebugOverlayProps) => {
             className="border-t border-border max-h-[60vh] overflow-y-auto"
           >
             <div className="px-4 py-3 space-y-3">
+
+              {/* §2.5: Structured Decision Object — the spec's required output */}
+              <div className="flex items-start gap-2">
+                <FileText className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                    Structured Decision Object (§2.5)
+                  </p>
+                  <div className="code-block rounded-lg p-3 text-[10px] font-mono leading-relaxed space-y-0.5">
+                    <p><span className="text-muted-foreground">{"{"}</span></p>
+                    <p>  <span className="text-creative">"intent"</span>: <span className="text-budget">"{result.intent}"</span>,</p>
+                    <p>  <span className="text-creative">"template"</span>: <span className="text-budget">"{result.templateId}"</span>,</p>
+                    <p>  <span className="text-creative">"hero_image"</span>: <span className="text-budget">"{result.heroImageKey}"</span>,</p>
+                    <p>  <span className="text-creative">"cta"</span>: <span className="text-budget">"{result.ctaDecision.text}"</span>,</p>
+                    <p>  <span className="text-creative">"cta_link"</span>: <span className="text-budget">"{result.ctaDecision.link}"</span>,</p>
+                    <p>  <span className="text-creative">"funnel_stage"</span>: <span className="text-budget">"{result.funnelStage}"</span>,</p>
+                    <p>  <span className="text-creative">"section_order"</span>: <span className="text-budget">[{result.sectionOrder.map(s => `"${s}"`).join(", ")}]</span>,</p>
+                    <p>  <span className="text-creative">"reason"</span>: <span className="text-foreground/70">"{result.reasoning.slice(0, 60)}..."</span></p>
+                    <p><span className="text-muted-foreground">{"}"}</span></p>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA Decision */}
+              <div className="flex items-start gap-2">
+                <FunnelIcon className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                    CTA Decision ({result.ctaDecision.priority})
+                  </p>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                      result.ctaDecision.priority === "buy" ? "bg-budget/10 text-budget" :
+                      result.ctaDecision.priority === "compare" ? "bg-productivity/10 text-productivity" :
+                      "bg-primary/10 text-primary"
+                    }`}>
+                      {result.ctaDecision.priority}
+                    </span>
+                    <span className="text-foreground font-medium">"{result.ctaDecision.text}"</span>
+                    <span className="text-muted-foreground">→</span>
+                    <span className="font-mono text-primary text-[10px]">{result.ctaDecision.link}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section Order from engine */}
+              <div className="flex items-start gap-2">
+                <Layers className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                    Section Order (engine-decided)
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    {result.sectionOrder.map((section, i) => (
+                      <span key={section} className="flex items-center gap-1.5">
+                        <span className="px-2 py-0.5 rounded bg-secondary text-[10px] font-mono text-foreground">
+                          {section}
+                        </span>
+                        {i < result.sectionOrder.length - 1 && (
+                          <span className="text-muted-foreground text-[10px]">→</span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Injection Log (§2.6) */}
+              <div className="flex items-start gap-2">
+                <FileText className="w-3.5 h-3.5 text-developer mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                    Injection Log (§2.6)
+                  </p>
+                  <div className="space-y-0.5">
+                    {result.injectionLog.map((entry, i) => (
+                      <p key={i} className="text-[10px] text-developer/80 font-mono leading-relaxed">
+                        [{i + 1}] {entry}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {/* Reasoning */}
               <div className="flex items-start gap-2">
                 <Brain className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
@@ -117,19 +198,6 @@ const DebugOverlay = ({ result, behavior }: DebugOverlayProps) => {
                   </p>
                   <p className="text-xs text-foreground leading-relaxed">
                     {result.reasoning}
-                  </p>
-                </div>
-              </div>
-
-              {/* Section Order */}
-              <div className="flex items-start gap-2">
-                <Layers className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                    Section Order ({funnelStage})
-                  </p>
-                  <p className="text-xs text-foreground font-mono">
-                    {SECTION_ORDER_LABELS[funnelStage] || SECTION_ORDER_LABELS.explore}
                   </p>
                 </div>
               </div>
@@ -247,12 +315,12 @@ const DebugOverlay = ({ result, behavior }: DebugOverlayProps) => {
                   Test URLs
                 </p>
                 <div className="space-y-1 text-[10px] font-mono text-muted-foreground">
-                  <p>?utm_campaign=gaming <span className="text-gaming">→ buy</span></p>
-                  <p>?ref=linkedin <span className="text-productivity">→ compare</span></p>
-                  <p>?q=cheap <span className="text-budget">→ buy</span></p>
-                  <p>?ref=dribbble <span className="text-creative">→ explore</span></p>
-                  <p>?ref=github <span className="text-developer">→ compare</span></p>
-                  <p>?q=student <span className="text-student">→ explore</span></p>
+                  <p>?utm_campaign=gaming <span className="text-gaming">→ buy · products first</span></p>
+                  <p>?ref=linkedin <span className="text-productivity">→ compare · funnel CTA first</span></p>
+                  <p>?q=cheap <span className="text-budget">→ buy · products first</span></p>
+                  <p>?ref=dribbble <span className="text-creative">→ explore · trust first</span></p>
+                  <p>?ref=github <span className="text-developer">→ compare · funnel CTA first</span></p>
+                  <p>?q=student <span className="text-student">→ explore · trust first</span></p>
                 </div>
               </div>
             </div>
