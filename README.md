@@ -1,4 +1,4 @@
-# PixelVue — AI Personalization Layer for E-Commerce
+# SmartSwap — AI Personalization Layer for E-Commerce
 
 > **Plug-and-play AI personalization engine** that transforms a static e-commerce storefront into a dynamic, intent-driven experience — all from URL signals, referrer data, and on-page behavior. Zero backend required for the demo; Lovable Cloud ready for production.
 
@@ -30,7 +30,7 @@
 
 ## Overview
 
-PixelVue is a **proof-of-concept AI personalization layer** designed for SMB e-commerce stores. It demonstrates how a single `<script>` tag could bring enterprise-level dynamic content to any storefront by:
+SmartSwap is a **proof-of-concept AI personalization layer** designed for SMB e-commerce stores. It demonstrates how a single `<script>` tag could bring enterprise-level dynamic content to any storefront by:
 
 1. **Detecting visitor intent** from URL parameters, referrers, and search queries
 2. **Resolving a persona** (Gaming, Budget, Creative, Developer, Student, Productivity)
@@ -222,8 +222,8 @@ Every personalization decision is exportable as a structured JSON object:
 **Access methods:**
 - **Clipboard:** Copy button in Debug Overlay
 - **Download:** `.json` button in Debug Overlay
-- **Global API:** `window.__PIXELVUE_DECISION__`
-- **Event stream:** `window.addEventListener("pixelvue:decision", (e) => console.log(e.detail))`
+- **Global API:** `window.__SMARTSWAP_DECISION__`
+- **Event stream:** `window.addEventListener("smartswap:decision", (e) => console.log(e.detail))`
 
 ---
 
@@ -326,7 +326,7 @@ src/
 | **Routing** | React Router v6 |
 | **State** | React hooks (no global store) |
 | **Data Fetching** | TanStack React Query |
-| **Backend** | Lovable Cloud (Supabase) — optional |
+| **Backend** | Lovable Cloud — optional |
 | **Testing** | Vitest + Testing Library |
 
 ---

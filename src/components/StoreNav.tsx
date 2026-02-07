@@ -26,7 +26,7 @@ const StoreNav = ({ intent }: StoreNavProps) => {
         <div className="flex items-center gap-2">
           <Monitor className={`w-6 h-6 ${intentAccentClass[intent]} transition-colors duration-700`} />
           <span className="font-display text-xl font-bold tracking-tight text-foreground">
-            Pixel<span className={`${intentAccentClass[intent]} transition-colors duration-700`}>Vue</span>
+            Smart<span className={`${intentAccentClass[intent]} transition-colors duration-700`}>Swap</span>
           </span>
         </div>
 
