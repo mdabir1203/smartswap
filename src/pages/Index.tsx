@@ -9,6 +9,7 @@
  *   - Debug overlay (SMB owner trust-builder)
  */
 
+import { Link } from "react-router-dom";
 import { usePersonalization } from "@/hooks/use-personalization";
 import StoreNav from "@/components/StoreNav";
 import HeroSection from "@/components/HeroSection";
@@ -31,10 +32,19 @@ const Index = () => {
       <footer className="py-12 border-t border-border">
         <div className="container mx-auto px-4 lg:px-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © 2026 PixelVue Monitors. This is a demo of the AI Personalization Layer.
+            © 2026 PixelVue Monitors — AI Personalization Layer Demo
           </p>
           <p className="text-xs text-muted-foreground mt-2">
-            Try adding <code className="font-mono text-primary">?utm_campaign=gaming</code> to the URL to see personalization in action.
+            Try: <code className="font-mono text-primary">?utm_campaign=gaming</code> · 
+            <code className="font-mono text-creative"> ?ref=dribbble</code> · 
+            <code className="font-mono text-developer"> ?ref=github</code> · 
+            <code className="font-mono text-student"> ?q=student</code> · 
+            <code className="font-mono text-budget"> ?q=cheap</code>
+          </p>
+          <p className="text-xs text-muted-foreground mt-3">
+            <Link to="/integrate" className="text-primary hover:underline">
+              View Integration Guide →
+            </Link>
           </p>
         </div>
       </footer>

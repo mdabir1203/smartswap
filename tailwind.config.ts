@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         display: ["Space Grotesk", "sans-serif"],
         body: ["Inter", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -65,6 +66,9 @@ export default {
         gaming: "hsl(var(--intent-gaming))",
         productivity: "hsl(var(--intent-productivity))",
         budget: "hsl(var(--intent-budget))",
+        creative: "hsl(var(--intent-creative))",
+        student: "hsl(var(--intent-student))",
+        developer: "hsl(var(--intent-developer))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -87,6 +91,10 @@ export default {
         "slide-up": {
           from: { opacity: "0", transform: "translateY(20px)" },
           to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "typing": {
+          from: { width: "0" },
+          to: { width: "100%" },
         },
       },
       animation: {
