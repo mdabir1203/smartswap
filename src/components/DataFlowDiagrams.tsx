@@ -327,80 +327,96 @@ const WIDGET_ARCHITECTURE_CHART = `flowchart TD
 
 const DataFlowDiagrams = () => {
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {/* Layer 1: Frontend Observer */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">1</span>
-          <h3 className="text-sm font-display font-semibold text-foreground">SmartListener — Semantic Event Delegation</h3>
+      <section>
+        <div className="flex items-start gap-3 mb-5">
+          <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary shrink-0 mt-0.5">1</span>
+          <div>
+            <h3 className="text-base font-display font-bold text-foreground leading-snug">
+              SmartListener — Semantic Event Delegation
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+              <code className="text-primary text-xs bg-primary/5 px-1.5 py-0.5 rounded">smart-listener.ts</code> — Non-blocking init via <code className="text-primary text-xs">requestIdleCallback</code>, 
+              single document-level click handler with weighted semantic scoring and frustration detection.
+            </p>
+          </div>
         </div>
-        <p className="text-xs text-muted-foreground mb-4 ml-9">
-          <code className="text-primary">smart-listener.ts</code> — Non-blocking init via <code className="text-primary">requestIdleCallback</code>, 
-          single document-level click handler with weighted semantic scoring and frustration detection.
-        </p>
         <MermaidDiagram chart={FRONTEND_OBSERVER_CHART} id="frontend-observer" />
-      </div>
+      </section>
 
       {/* Connector */}
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center py-1">
         <div className="flex items-center gap-3">
-          <div className="h-px w-12 bg-border" />
-          <span className="text-xs font-mono text-primary font-semibold px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+          <div className="h-px w-16 bg-gradient-to-r from-transparent to-primary/30" />
+          <span className="text-xs font-mono text-primary font-semibold px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20">
             EventPayload → ledger.push()
           </span>
-          <div className="h-px w-12 bg-border" />
+          <div className="h-px w-16 bg-gradient-to-l from-transparent to-primary/30" />
         </div>
       </div>
 
       {/* Layer 2: Event Ledger */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">2</span>
-          <h3 className="text-sm font-display font-semibold text-foreground">EventLedger — Client-Side Batching & Persistence</h3>
+      <section>
+        <div className="flex items-start gap-3 mb-5">
+          <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary shrink-0 mt-0.5">2</span>
+          <div>
+            <h3 className="text-base font-display font-bold text-foreground leading-snug">
+              EventLedger — Client-Side Batching &amp; Persistence
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+              <code className="text-primary text-xs bg-primary/5 px-1.5 py-0.5 rounded">event-ledger.ts</code> — Deduplication by event_id (5s window), localStorage crash-safe queue, 
+              5 flush triggers, JSONB-compatible backend schema.
+            </p>
+          </div>
         </div>
-        <p className="text-xs text-muted-foreground mb-4 ml-9">
-          <code className="text-primary">event-ledger.ts</code> — Deduplication by event_id (5s window), localStorage crash-safe queue, 
-          5 flush triggers, JSONB-compatible backend schema.
-        </p>
         <MermaidDiagram chart={EVENT_LEDGER_CHART} id="event-ledger" />
-      </div>
+      </section>
 
       {/* Connector */}
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center py-1">
         <div className="flex items-center gap-3">
-          <div className="h-px w-12 bg-border" />
-          <span className="text-xs font-mono text-primary font-semibold px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+          <div className="h-px w-16 bg-gradient-to-r from-transparent to-primary/30" />
+          <span className="text-xs font-mono text-primary font-semibold px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20">
             React State ← useSmartListener()
           </span>
-          <div className="h-px w-12 bg-border" />
+          <div className="h-px w-16 bg-gradient-to-l from-transparent to-primary/30" />
         </div>
       </div>
 
       {/* Layer 3: React Bridge */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">3</span>
-          <h3 className="text-sm font-display font-semibold text-foreground">useSmartListener — React Bridge Hook</h3>
+      <section>
+        <div className="flex items-start gap-3 mb-5">
+          <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary shrink-0 mt-0.5">3</span>
+          <div>
+            <h3 className="text-base font-display font-bold text-foreground leading-snug">
+              useSmartListener — React Bridge Hook
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+              <code className="text-primary text-xs bg-primary/5 px-1.5 py-0.5 rounded">use-smart-listener.ts</code> — Creates &amp; manages SmartListener + EventLedger instances, 
+              exposes real-time state to the component tree with proper cleanup.
+            </p>
+          </div>
         </div>
-        <p className="text-xs text-muted-foreground mb-4 ml-9">
-          <code className="text-primary">use-smart-listener.ts</code> — Creates & manages SmartListener + EventLedger instances, 
-          exposes real-time state to the component tree with proper cleanup.
-        </p>
         <MermaidDiagram chart={REACT_BRIDGE_CHART} id="react-bridge" />
-      </div>
+      </section>
 
       {/* Layer 4: Middleware Hooks */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">4</span>
-          <h3 className="text-sm font-display font-semibold text-foreground">Middleware — plugin.use() Extensibility</h3>
+      <section>
+        <div className="flex items-start gap-3 mb-5">
+          <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary shrink-0 mt-0.5">4</span>
+          <div>
+            <h3 className="text-base font-display font-bold text-foreground leading-snug">
+              Middleware — plugin.use() Extensibility
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+              <code className="text-primary text-xs bg-primary/5 px-1.5 py-0.5 rounded">IntentDetectorMiddleware</code> — Functions receive (element, MouseEvent) and return 
+              a custom event classification or null to pass through. First match wins.
+            </p>
+          </div>
         </div>
-        <p className="text-xs text-muted-foreground mb-4 ml-9">
-          <code className="text-primary">IntentDetectorMiddleware</code> — Functions receive (element, MouseEvent) and return 
-          a custom event classification or null to pass through. First match wins.
-        </p>
         <MermaidDiagram chart={MIDDLEWARE_CHART} id="middleware-hooks" />
-      </div>
+      </section>
     </div>
   );
 };
@@ -408,8 +424,8 @@ const DataFlowDiagrams = () => {
 export const WidgetArchitectureDiagram = () => {
   return (
     <div>
-      <p className="text-xs text-muted-foreground mb-4">
-        <code className="text-primary">personalization-engine.ts</code> — Weighted signal collection from 7 URL param types, 
+      <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
+        <code className="text-primary text-xs bg-primary/5 px-1.5 py-0.5 rounded">personalization-engine.ts</code> — Weighted signal collection from 7 URL param types, 
         intent resolution with compound signal handling, funnel-driven section reordering.
       </p>
       <MermaidDiagram chart={WIDGET_ARCHITECTURE_CHART} id="widget-architecture" />
