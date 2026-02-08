@@ -136,32 +136,35 @@ const MIDDLEWARE_CHART = `flowchart LR
   style G fill:#1e293b,stroke:#f97316,stroke-width:2px,color:#f97316`;
 
 const WIDGET_ARCHITECTURE_CHART = `flowchart TD
-  subgraph BROWSER["🌐 VISITOR BROWSER"]
-    direction TB
-    SIGNALS["📡 URL Signals<br/>utm_campaign • referrer<br/>query params • cookies"]
-    SIGNALS --> WIDGET
-    subgraph WIDGET["SmartSwap Widget — 12KB gzip"]
-      direction LR
-      COLLECT["📥 Collect"] --> SCORE["📊 Score"] --> SWAP["🔄 Swap DOM"]
-    end
-    WIDGET -->|"Safety: Unknown → Default fallback"| STORE
-    subgraph STORE["🏪 Host Store — Shopify / Webflow / Custom"]
-      HERO["#hero-container ← Only this is modified"]
-      CTA[".hero-cta ← Text & href swapped"]
-      REST["[everything else] ← Untouched ✓"]
-    end
+  SIGNALS["📡 URL Signals<br/>utm_campaign · referrer · query params · cookies"]
+  SIGNALS --> COLLECT
+  COLLECT["📥 Collect"] --> SCORE["📊 Score"] --> SWAP["🔄 Swap DOM"]
+  SWAP -->|"Safety: Unknown → Default"| HERO
+  HERO["#hero-container<br/><i>Only this element is modified</i>"]
+  CTA[".hero-cta<br/><i>Text and href swapped</i>"]
+  REST["Everything else<br/><i>Untouched ✓</i>"]
+
+  subgraph WIDGETBOX["⚡ SmartSwap Widget — 12KB gzip"]
+    COLLECT
+    SCORE
+    SWAP
   end
 
-  style BROWSER fill:#0f172a,stroke:#334155,color:#f8fafc
+  subgraph STOREBOX["🏪 Host Store — Shopify / Webflow / Custom"]
+    HERO
+    CTA
+    REST
+  end
+
   style SIGNALS fill:#1e293b,stroke:#3b82f6,color:#f8fafc
-  style WIDGET fill:#1e293b,stroke:#f97316,color:#f8fafc
+  style WIDGETBOX fill:#0f172a,stroke:#f97316,color:#f8fafc
   style COLLECT fill:#1e293b,stroke:#22c55e,color:#f8fafc
   style SCORE fill:#1e293b,stroke:#a855f7,color:#f8fafc
   style SWAP fill:#1e293b,stroke:#fbbf24,color:#f8fafc
-  style STORE fill:#1e293b,stroke:#6b7280,color:#f8fafc
-  style HERO fill:#0f172a,stroke:#06b6d4,color:#67e8f9
-  style CTA fill:#0f172a,stroke:#06b6d4,color:#67e8f9
-  style REST fill:#0f172a,stroke:#22c55e,color:#86efac`;
+  style STOREBOX fill:#0f172a,stroke:#6b7280,color:#f8fafc
+  style HERO fill:#1e293b,stroke:#06b6d4,color:#67e8f9
+  style CTA fill:#1e293b,stroke:#06b6d4,color:#67e8f9
+  style REST fill:#1e293b,stroke:#22c55e,color:#86efac`;
 
 const DataFlowDiagrams = () => {
   return (
