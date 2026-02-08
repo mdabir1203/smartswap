@@ -7,6 +7,7 @@ import {
   ShoppingBag, ExternalLink, Database
 } from "lucide-react";
 import DataFlowDiagrams, { WidgetArchitectureDiagram } from "@/components/DataFlowDiagrams";
+import ThirdPartyDataDemo from "@/components/ThirdPartyDataDemo";
 import { Button } from "@/components/ui/button";
 import { ALL_INTENTS, CONTENT_VARIANTS, type IntentType } from "@/lib/personalization-engine";
 import { HERO_TEMPLATES, TEMPLATE_MAPPINGS } from "@/lib/template-registry";
@@ -624,6 +625,21 @@ const IntegrationGuide = () => {
 
           <div className="rounded-xl bg-card border border-border p-6 lg:p-8">
             <WidgetArchitectureDiagram />
+          </div>
+        </section>
+
+        {/* Third-Party Data Integration */}
+        <section className="container mx-auto px-4 lg:px-8 mb-24">
+          <h2 className="text-2xl font-display font-bold text-foreground mb-3">
+            Third-Party Data Integration
+          </h2>
+          <p className="text-muted-foreground mb-8">
+            SmartSwap doesn't just read URL params — it ingests <strong>Shopify customer tags</strong>, <strong>ad platform audiences</strong>, 
+            and <strong>first-party cookies</strong> through the same weighted signal pipeline. No separate decision path, no extra setup.
+          </p>
+
+          <div className="rounded-xl bg-card border border-border p-6 lg:p-8">
+            <ThirdPartyDataDemo />
           </div>
         </section>
 
