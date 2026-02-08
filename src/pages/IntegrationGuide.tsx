@@ -171,7 +171,7 @@ const IntegrationGuide = () => {
               <span className="text-xs font-medium text-primary">For Store Owners & Developers</span>
             </div>
             <h1 className="text-4xl lg:text-6xl font-display font-bold text-foreground mb-6 leading-tight">
-              Install in <span className="text-gradient">Under 2 Minutes</span>
+              Install. <span className="text-gradient">Done in Seconds</span>
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl">
               One script tag turns your generic store into a personalized shopping experience.
@@ -218,7 +218,7 @@ const IntegrationGuide = () => {
             Try the Install Wizard
           </h2>
           <p className="text-muted-foreground mb-8">
-            Experience the onboarding flow your store owners will see. Connect → Configure → Activate in under 2 minutes.
+            Experience the onboarding flow your store owners will see. Connect → Configure → Activate — done in seconds.
           </p>
           <InstallWizard />
         </section>
