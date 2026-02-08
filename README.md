@@ -55,7 +55,6 @@ Visitor arrives → URL signals collected → Intent scored → Persona resolved
 | **Template Registry** | `src/lib/template-registry.ts` | 3 hero layouts (centered, split, minimal) mapped to intents |
 | **Smart Listener** | `src/lib/smart-listener.ts` | Semantic click tracking, frustration detection, middleware hooks |
 | **Event Ledger** | `src/lib/event-ledger.ts` | Client-side event batching, dedup, localStorage persistence |
-| **Behavior Tracker** | `src/hooks/use-behavior-tracking.ts` | 5-second scroll/click observation for intent inference |
 
 ---
 
@@ -76,6 +75,13 @@ Every personalization outputs a structured JSON (accessible via `window.__SMARTS
 
 ---
 
+## Documentation
+
+- **[TECHNICAL_SUMMARY.md](./TECHNICAL_SUMMARY.md)** — 1-page judge-ready architectural overview
+- **[DEVELOPER_DOCS.md](./DEVELOPER_DOCS.md)** — Senior-grade developer reference (APIs, data flow, extension points)
+
+---
+
 ## Quick Start
 
 ```bash
@@ -90,17 +96,7 @@ Then try: `http://localhost:8080/?utm_campaign=gaming`
 
 ## Tech Stack
 
-React 18 · TypeScript · Vite · Tailwind CSS · Framer Motion · shadcn/ui · Vitest
-
----
-
-## Testing
-
-```bash
-npm test
-```
-
-Covers: intent resolution, compound signals, confidence thresholds, semantic scoring, frustration detection.
+React 18 · TypeScript · Vite · Tailwind CSS · Framer Motion · Shopify Storefront API · Zustand · Vitest
 
 ---
 
