@@ -6,6 +6,7 @@ import {
   Monitor, ArrowLeft, Globe, Layers, Puzzle, Settings, Play,
   ShoppingBag, ExternalLink, Database
 } from "lucide-react";
+import DataFlowDiagrams, { WidgetArchitectureDiagram } from "@/components/DataFlowDiagrams";
 import { Button } from "@/components/ui/button";
 import { ALL_INTENTS, CONTENT_VARIANTS, type IntentType } from "@/lib/personalization-engine";
 import { HERO_TEMPLATES, TEMPLATE_MAPPINGS } from "@/lib/template-registry";
@@ -608,130 +609,9 @@ const IntegrationGuide = () => {
             type-safe, and designed for <code className="font-mono text-primary">&lt;15KB</code> bundle with <code className="font-mono text-primary">0ms</code> main-thread blocking.
           </p>
 
-          {/* Data Flow Diagram — Multi-layer */}
-          <div className="rounded-xl bg-card border border-border p-6 lg:p-8 space-y-6">
-            {/* Layer 1: Frontend Observer */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">1</span>
-                <h3 className="text-sm font-display font-semibold text-foreground">Frontend: "The Minimalist Observer"</h3>
-              </div>
-              <div className="rounded-lg bg-secondary/30 border border-border p-4 font-mono text-xs leading-loose">
-                <p className="text-muted-foreground">┌───────────────────── <span className="text-primary font-bold">NON-BLOCKING INIT</span> ─────────────────────┐</p>
-                <p className="text-muted-foreground">│                                                               │</p>
-                <p className="text-muted-foreground">│  <span className="text-developer">requestIdleCallback</span>(() =&gt; {"{"}                              │</p>
-                <p className="text-muted-foreground">│    document.addEventListener('<span className="text-gaming">click</span>', handler, {"{"} <span className="text-budget">capture: true</span> {"}"}) │</p>
-                <p className="text-muted-foreground">│  {"}"})  ← <span className="text-student">Doesn't compete with LCP</span>                          │</p>
-                <p className="text-muted-foreground">│                                                               │</p>
-                <p className="text-muted-foreground">│  Click Event                                                  │</p>
-                <p className="text-muted-foreground">│    ↓                                                          │</p>
-                <p className="text-muted-foreground">│  ┌──────────────────┐  ┌──────────────────┐                   │</p>
-                <p className="text-muted-foreground">│  │ <span className="text-creative font-bold">Semantic Scoring</span> │→ │ <span className="text-productivity font-bold">Event Classify</span>   │                   │</p>
-                <p className="text-muted-foreground">│  │ text:  +5..+10   │  │ CTA_CLICK        │                   │</p>
-                <p className="text-muted-foreground">│  │ class: +3..+8    │  │ NAV_CLICK        │                   │</p>
-                <p className="text-muted-foreground">│  │ aria:  +5..+8    │  │ CART_ACTION       │                   │</p>
-                <p className="text-muted-foreground">│  └──────────────────┘  │ COMPARE_CLICK    │                   │</p>
-                <p className="text-muted-foreground">│                        │ UX_FRICTION      │                   │</p>
-                <p className="text-muted-foreground">│    ↓                   └──────────────────┘                   │</p>
-                <p className="text-muted-foreground">│  ┌──────────────────────────────────────────┐                 │</p>
-                <p className="text-muted-foreground">│  │ <span className="text-destructive font-bold">Frustration Detector</span> (Click Buffer)       │                 │</p>
-                <p className="text-muted-foreground">│  │ 3+ clicks in 1000ms → <span className="text-destructive">UX_FRICTION</span> event  │                 │</p>
-                <p className="text-muted-foreground">│  │ Suppresses "Salesy" variant overlays     │                 │</p>
-                <p className="text-muted-foreground">│  └──────────────────────────────────────────┘                 │</p>
-                <p className="text-muted-foreground">│    ↓                                                          │</p>
-                <p className="text-muted-foreground">│  ┌──────────────────────────────────────────┐                 │</p>
-                <p className="text-muted-foreground">│  │ <span className="text-student font-bold">Middleware Pipeline</span> (plugin.use())          │                 │</p>
-                <p className="text-muted-foreground">│  │ Newsletter Signup → CUSTOM event          │                 │</p>
-                <p className="text-muted-foreground">│  │ Video Play → CUSTOM event                 │                 │</p>
-                <p className="text-muted-foreground">│  └──────────────────────────────────────────┘                 │</p>
-                <p className="text-muted-foreground">└───────────────────────────────────────────────────────────────┘</p>
-              </div>
-            </div>
-
-            {/* Layer 2: Event Payload */}
-            <div className="flex items-center justify-center">
-              <div className="flex items-center gap-3">
-                <div className="h-px w-12 bg-border" />
-                <span className="text-xs font-mono text-muted-foreground">EventPayload (type-safe)</span>
-                <div className="h-px w-12 bg-border" />
-              </div>
-            </div>
-
-            {/* Layer 2: Event Ledger */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">2</span>
-                <h3 className="text-sm font-display font-semibold text-foreground">Backend: "The Scalable Ledger"</h3>
-              </div>
-              <div className="rounded-lg bg-secondary/30 border border-border p-4 font-mono text-xs leading-loose">
-                <p className="text-muted-foreground">┌───────────────────── <span className="text-budget font-bold">BATCHED EVENTS</span> ───────────────────────┐</p>
-                <p className="text-muted-foreground">│                                                               │</p>
-                <p className="text-muted-foreground">│  EventPayload → <span className="text-developer">EventLedger.push()</span>                          │</p>
-                <p className="text-muted-foreground">│                                                               │</p>
-                <p className="text-muted-foreground">│  ┌──────────────┐  ┌──────────────────┐  ┌──────────────┐   │</p>
-                <p className="text-muted-foreground">│  │ <span className="text-creative font-bold">Dedup Check</span>  │→ │ <span className="text-gaming font-bold">localStorage Q</span>   │→ │ <span className="text-productivity font-bold">Batch Flush</span>  │   │</p>
-                <p className="text-muted-foreground">│  │ event_id +   │  │ Crash-safe        │  │ Triggers:    │   │</p>
-                <p className="text-muted-foreground">│  │ session_id   │  │ Max 50 events     │  │ • batch full │   │</p>
-                <p className="text-muted-foreground">│  │ 5s window    │  │ Auto-restore      │  │ • page leave │   │</p>
-                <p className="text-muted-foreground">│  └──────────────┘  └──────────────────┘  │ • idle time  │   │</p>
-                <p className="text-muted-foreground">│                                          │ • 30s timer  │   │</p>
-                <p className="text-muted-foreground">│                                          └──────────────┘   │</p>
-                <p className="text-muted-foreground">│                                                               │</p>
-                <p className="text-muted-foreground">│  ┌────────────────────────────────────────────────────────┐    │</p>
-                <p className="text-muted-foreground">│  │ <span className="text-student font-bold">JSONB Schema</span> (PostgreSQL)                              │    │</p>
-                <p className="text-muted-foreground">│  │ event_type | variant_id | session_score | path_url    │    │</p>
-                <p className="text-muted-foreground">│  │ is_friction_event | session_id | metadata(JSONB)      │    │</p>
-                <p className="text-muted-foreground">│  └────────────────────────────────────────────────────────┘    │</p>
-                <p className="text-muted-foreground">└───────────────────────────────────────────────────────────────┘</p>
-              </div>
-            </div>
-
-            {/* Layer 3: Director's Cut */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">3</span>
-                <h3 className="text-sm font-display font-semibold text-foreground">Preview: "Director's Cut"</h3>
-              </div>
-              <div className="rounded-lg bg-secondary/30 border border-border p-4 font-mono text-xs leading-loose">
-                <p className="text-muted-foreground">┌───────────────────── <span className="text-creative font-bold">SHADOW DOM ADMIN</span> ──────────────────────┐</p>
-                <p className="text-muted-foreground">│                                                               │</p>
-                <p className="text-muted-foreground">│  <span className="text-foreground">Isolated Admin Panel</span> (no CSS leakage into host store)      │</p>
-                <p className="text-muted-foreground">│                                                               │</p>
-                <p className="text-muted-foreground">│  ┌──────────────────┐  ┌────────────────────────────────┐    │</p>
-                <p className="text-muted-foreground">│  │ <span className="text-productivity font-bold">Persona Spoofer</span>  │  │ <span className="text-gaming font-bold">Simulation States</span>              │    │</p>
-                <p className="text-muted-foreground">│  │ navigator.conn   │  │ Fast Desktop (fiber)           │    │</p>
-                <p className="text-muted-foreground">│  │ navigator.ua     │  │ Slow 3G (budget phone)         │    │</p>
-                <p className="text-muted-foreground">│  │ GDPR mode        │  │ Screen Reader (NVDA)           │    │</p>
-                <p className="text-muted-foreground">│  └──────────────────┘  │ International (EU/GDPR)        │    │</p>
-                <p className="text-muted-foreground">│                        └────────────────────────────────┘    │</p>
-                <p className="text-muted-foreground">│                                                               │</p>
-                <p className="text-muted-foreground">│  Adaptations per persona: image quality, animation toggle,    │</p>
-                <p className="text-muted-foreground">│  ARIA live regions, lazy loading, consent banners             │</p>
-                <p className="text-muted-foreground">└───────────────────────────────────────────────────────────────┘</p>
-              </div>
-            </div>
-
-            {/* Layer 4: Middleware */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">4</span>
-                <h3 className="text-sm font-display font-semibold text-foreground">Extensibility: Middleware Hooks</h3>
-              </div>
-              <div className="rounded-lg bg-secondary/30 border border-border p-4 font-mono text-xs leading-loose">
-                <p className="text-muted-foreground">// <span className="text-primary">Add custom intent detectors without touching core code</span></p>
-                <p className="text-muted-foreground">smartListener.<span className="text-gaming">use</span>((element, event) =&gt; {"{"}</p>
-                <p className="text-muted-foreground">  <span className="text-creative">// Newsletter signup detection</span></p>
-                <p className="text-muted-foreground">  if (element.closest('[data-newsletter]')) {"{"}</p>
-                <p className="text-muted-foreground">    return {"{"} event_type: '<span className="text-budget">CUSTOM</span>', label: 'newsletter_signup' {"}"}</p>
-                <p className="text-muted-foreground">  {"}"}</p>
-                <p className="text-muted-foreground">  <span className="text-creative">// Video play detection</span></p>
-                <p className="text-muted-foreground">  if (element.closest('[data-video-play]')) {"{"}</p>
-                <p className="text-muted-foreground">    return {"{"} event_type: '<span className="text-budget">CUSTOM</span>', label: 'video_play' {"}"}</p>
-                <p className="text-muted-foreground">  {"}"}</p>
-                <p className="text-muted-foreground">  return null; <span className="text-creative">// Pass to next middleware</span></p>
-                <p className="text-muted-foreground">{"}"});</p>
-              </div>
-            </div>
+          {/* Data Flow Diagram — Mermaid Diagrams */}
+          <div className="rounded-xl bg-card border border-border p-6 lg:p-8">
+            <DataFlowDiagrams />
           </div>
         </section>
 
@@ -742,32 +622,8 @@ const IntegrationGuide = () => {
             How the widget fits into any e-commerce stack — zero coupling with the host application.
           </p>
 
-          <div className="rounded-xl bg-card border border-border p-8 overflow-x-auto">
-            <div className="min-w-[600px]">
-              <div className="font-mono text-xs leading-loose space-y-1">
-                <p className="text-muted-foreground">┌──────────────────────────────────────────────────────────────────┐</p>
-                <p className="text-muted-foreground">│  <span className="text-primary font-bold">VISITOR BROWSER</span>                                                │</p>
-                <p className="text-muted-foreground">│                                                                  │</p>
-                <p className="text-muted-foreground">│  ┌─────────────┐    ┌───────────────────────────────────────┐   │</p>
-                <p className="text-muted-foreground">│  │ <span className="text-foreground">URL Signals</span> │──→ │ <span className="text-gaming font-bold">SmartSwap Widget</span> (12KB gzip)        │   │</p>
-                <p className="text-muted-foreground">│  │ utm_campaign │    │                                       │   │</p>
-                <p className="text-muted-foreground">│  │ referrer     │    │  ┌─────────┐  ┌──────┐  ┌──────────┐ │   │</p>
-                <p className="text-muted-foreground">│  │ query params │    │  │ <span className="text-productivity">Collect</span> │→ │ <span className="text-creative">Score</span> │→ │ <span className="text-budget">Swap DOM</span> │ │   │</p>
-                <p className="text-muted-foreground">│  │ cookies      │    │  └─────────┘  └──────┘  └──────────┘ │   │</p>
-                <p className="text-muted-foreground">│  └─────────────┘    │                                       │   │</p>
-                <p className="text-muted-foreground">│                     │  <span className="text-developer">Safety: Unknown → Default fallback</span>  │   │</p>
-                <p className="text-muted-foreground">│                     └───────────────────────────────────────┘   │</p>
-                <p className="text-muted-foreground">│                              ↓                                   │</p>
-                <p className="text-muted-foreground">│  ┌───────────────────────────────────────────────────────────┐   │</p>
-                <p className="text-muted-foreground">│  │ <span className="text-foreground font-bold">Host Store</span> (Shopify / Webflow / Custom)                  │   │</p>
-                <p className="text-muted-foreground">│  │                                                           │   │</p>
-                <p className="text-muted-foreground">│  │  #hero-container  ← <span className="text-student">Only this element is modified</span>       │   │</p>
-                <p className="text-muted-foreground">│  │  .hero-cta        ← <span className="text-student">Text & href swapped</span>                │   │</p>
-                <p className="text-muted-foreground">│  │  [everything else] ← <span className="text-budget">Untouched ✓</span>                       │   │</p>
-                <p className="text-muted-foreground">│  └───────────────────────────────────────────────────────────┘   │</p>
-                <p className="text-muted-foreground">└──────────────────────────────────────────────────────────────────┘</p>
-              </div>
-            </div>
+          <div className="rounded-xl bg-card border border-border p-6 lg:p-8">
+            <WidgetArchitectureDiagram />
           </div>
         </section>
 
