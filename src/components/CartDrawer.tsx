@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/sheet";
 import { ShoppingCart, Minus, Plus, Trash2, ExternalLink, Loader2 } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
+import { formatPrice } from "@/lib/format-price";
 
 export const CartDrawer = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -75,7 +76,7 @@ export const CartDrawer = () => {
                           {item.selectedOptions.map(o => o.value).join(' · ')}
                         </p>
                         <p className="font-semibold text-foreground">
-                          {item.price.currencyCode} {parseFloat(item.price.amount).toFixed(2)}
+                          {formatPrice(item.price.amount, item.price.currencyCode)}
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-2 flex-shrink-0">
@@ -101,7 +102,7 @@ export const CartDrawer = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold text-foreground">Total</span>
                   <span className="text-xl font-bold text-foreground">
-                    {items[0]?.price.currencyCode || 'USD'} {totalPrice.toFixed(2)}
+                    {formatPrice(totalPrice, items[0]?.price.currencyCode || 'USD')}
                   </span>
                 </div>
                 <Button onClick={handleCheckout} className="w-full" size="lg" disabled={items.length === 0 || isLoading || isSyncing}>

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import type { IntentType } from "@/lib/personalization-engine";
 import { storefrontApiRequest, PRODUCTS_QUERY, type ShopifyProduct } from "@/lib/shopify";
 import { useCartStore } from "@/stores/cartStore";
+import { formatPrice } from "@/lib/format-price";
 
 interface ProductGridProps {
   intent: IntentType;
@@ -138,7 +139,7 @@ const ProductGrid = ({ intent }: ProductGridProps) => {
 
                   <div className="flex items-center justify-between">
                     <span className="text-2xl font-display font-bold text-foreground">
-                      {price.currencyCode} {parseFloat(price.amount).toFixed(2)}
+                      {formatPrice(price.amount, price.currencyCode)}
                     </span>
                     <Button
                       size="sm"

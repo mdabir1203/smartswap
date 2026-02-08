@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { storefrontApiRequest, PRODUCT_BY_HANDLE_QUERY } from "@/lib/shopify";
 import { useCartStore, type ShopifyProduct } from "@/stores/cartStore";
+import { formatPrice } from "@/lib/format-price";
 
 const ProductDetail = () => {
   const { handle } = useParams<{ handle: string }>();
@@ -120,7 +121,7 @@ const ProductDetail = () => {
 
             {variant && (
               <p className="text-3xl font-display font-bold text-foreground mb-6">
-                {variant.price.currencyCode} {parseFloat(variant.price.amount).toFixed(2)}
+                {formatPrice(variant.price.amount, variant.price.currencyCode)}
               </p>
             )}
 
