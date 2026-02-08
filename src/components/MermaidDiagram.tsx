@@ -43,7 +43,11 @@ const MermaidDiagram = ({ chart, id }: MermaidDiagramProps) => {
     const renderDiagram = async () => {
       try {
         const { svg: renderedSvg } = await mermaid.render(`mermaid-${id}`, chart);
-        setSvg(renderedSvg);
+        // Make SVG responsive: set width to 100% and preserve aspect ratio
+        const responsiveSvg = renderedSvg
+          .replace(/width="[\d.]+"/, 'width="100%"')
+          .replace(/style="max-width:[^"]*"/, 'style="max-width:100%;width:100%"');
+        setSvg(responsiveSvg);
       } catch (error) {
         console.error("Mermaid render error:", error);
       }
@@ -54,7 +58,7 @@ const MermaidDiagram = ({ chart, id }: MermaidDiagramProps) => {
   return (
     <div
       ref={containerRef}
-      className="w-full overflow-x-auto rounded-lg bg-secondary/30 border border-border p-4"
+      className="w-full overflow-x-auto rounded-lg bg-secondary/30 border border-border p-4 [&_svg]:w-full [&_svg]:h-auto"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );
