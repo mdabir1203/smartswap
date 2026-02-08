@@ -17,7 +17,7 @@ mermaid.initialize({
     secondaryColor: "#1e293b",
     tertiaryColor: "#0f172a",
     fontFamily: "JetBrains Mono, monospace",
-    fontSize: "13px",
+    fontSize: "14px",
     nodeBorder: "#f97316",
     mainBkg: "#1e293b",
     clusterBkg: "#0f172a",
@@ -29,9 +29,10 @@ mermaid.initialize({
   flowchart: {
     htmlLabels: true,
     curve: "basis",
-    padding: 16,
-    nodeSpacing: 30,
-    rankSpacing: 40,
+    padding: 20,
+    nodeSpacing: 35,
+    rankSpacing: 50,
+    useMaxWidth: false,
   },
 });
 
@@ -54,11 +55,17 @@ function makeResponsive(svgString: string): string {
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
   }
 
-  // Override fixed dimensions → responsive
+  // Keep the original width as max-width so the diagram doesn't stretch
+  // beyond its natural size, but allow it to shrink on smaller screens
+  const originalWidth = parseFloat(svg.getAttribute("width") || "800");
+  const maxW = Math.min(originalWidth, 960);
+
   svg.setAttribute("width", "100%");
   svg.removeAttribute("height");
-  svg.style.maxWidth = "100%";
+  svg.style.maxWidth = `${maxW}px`;
   svg.style.height = "auto";
+  svg.style.display = "block";
+  svg.style.margin = "0 auto";
 
   return new XMLSerializer().serializeToString(svg);
 }
@@ -82,7 +89,7 @@ const MermaidDiagram = ({ chart, id }: MermaidDiagramProps) => {
   return (
     <div
       ref={containerRef}
-      className="w-full overflow-x-auto rounded-lg bg-secondary/30 border border-border p-4"
+      className="w-full overflow-x-auto rounded-lg bg-secondary/30 border border-border p-4 md:p-6 flex items-center justify-center"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );
