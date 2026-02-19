@@ -634,13 +634,12 @@ const IntegrationGuide = () => {
             Third-Party Data Integration
           </h2>
           <p className="text-muted-foreground mb-8">
-            SmartSwap doesn't just read URL params — it ingests <strong>Shopify customer tags</strong>, <strong>ad platform audiences</strong>, 
-            and <strong>first-party cookies</strong> through the same weighted signal pipeline. No separate decision path, no extra setup.
+            SmartSwap ingests <strong>Shopify customer tags</strong> and <strong>ad platform audiences</strong> through 
+            the same weighted signal pipeline as URL params — no separate path. Configure selectors, review smart suggestions, 
+            preview the exact experience each visitor sees, and copy production-ready code.
           </p>
 
-          <div className="rounded-xl bg-card border border-border p-6 lg:p-8">
-            <ThirdPartyDataDemo />
-          </div>
+          <ThirdPartyDataDemo />
         </section>
 
         {/* CTA */}
